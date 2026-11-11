@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pengaturan DSS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Pengaturan DSS</h2>
+    <div><a href="{{ url_for('dss_pengadaan') }}">DSS Pengadaan</a> | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <section class="card wide-card dss-settings-card">
+        <div class="page-heading">
+            <div>
+                <span class="eyebrow">DSS CONFIGURATION</span>
+                <h1>Pengaturan Kriteria Supplier</h1>
+                <p>Atur bobot kriteria aktif. Total bobot harus tepat 100%.</p>
+            </div>
+            <a class="button-link button-secondary" href="{{ url_for('dss_pengadaan') }}">Kembali</a>
+        </div>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        {% if success %}<p class="success">{{ success }}</p>{% endif %}
+        <form method="POST" id="dss-settings-form">
+            <div class="table-scroll">
+                <table class="dss-settings-table">
+                    <thead>
+                        <tr><th>Aktif</th><th>Kriteria</th><th>Tipe</th><th>Bobot (%)</th><th>Sumber data</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for item in criteria %}
+                        <tr>
+                            <td><input type="checkbox" name="aktif_{{ item.kode_kriteria }}" value="1" {% if item.aktif %}checked{% endif %}></td>
+                            <td><strong>{{ item.nama_kriteria }}</strong></td>
+                            <td><span class="status status-draft">{{ item.tipe }}</span></td>
+                            <td><input class="dss-weight-input" type="number" name="bobot_{{ item.kode_kriteria }}" min="0" max="100" step="0.01" value="{{ item.bobot }}" placeholder="Contoh: 35"></td>
+                            <td><code>{{ item.sumber_data }}</code></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="dss-weight-total">Total bobot aktif: <strong id="dss-weight-total">0%</strong></div>
+            <button type="submit">Simpan Pengaturan</button>
+        </form>
+    </section>
+</div>
+{% include 'partials/workspace_end.html' %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('dss-settings-form');
+    const total = document.getElementById('dss-weight-total');
+    function updateTotal() {
+        let value = 0;
+        form.querySelectorAll('tbody tr').forEach(function (row) {
+            const active = row.querySelector('input[type="checkbox"]');
+            const weight = row.querySelector('.dss-weight-input');
+            if (active.checked) value += Number(weight.value || 0);
+        });
+        total.textContent = value.toFixed(2) + '%';
+        total.classList.toggle('dss-total-valid', Math.abs(value - 100) < 0.001);
+    }
+    form.querySelectorAll('input').forEach(function (input) {
+        input.addEventListener('input', updateTotal);
+        input.addEventListener('change', updateTotal);
+    });
+    updateTotal();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+{% from 'partials/icon.html' import icon %}
+<section class="mis-dashboard" data-mis-dashboard>
+    <div class="mis-section-heading">
+        <div>
+            <span class="eyebrow">MANAGEMENT INFORMATION SYSTEM</span>
+            <h2>Ringkasan Kinerja</h2>
+            <p>Informasi operasional yang diringkas untuk membantu pengambilan keputusan.</p>
+        </div>
+        <div class="mis-refresh-state" data-mis-refresh-state>Memuat data...</div>
+    </div>
+
+    <div class="mis-toolbar">
+        <div class="mis-toolbar-title">
+            <strong>Periode laporan</strong>
+            <small>Data penjualan dan request stok</small>
+        </div>
+        <div class="mis-date-fields">
+            <label>Mulai <input type="date" data-mis-start-date></label>
+            <label>Sampai <input type="date" data-mis-end-date></label>
+            <button type="button" class="button-success" data-mis-apply>Perbarui</button>
+        </div>
+    </div>
+
+    <div class="mis-error" data-mis-error hidden></div>
+
+    <div class="mis-kpi-grid">
+        <article class="mis-kpi-card mis-kpi-revenue">
+            <div class="mis-kpi-icon">{{ icon('currency') }}</div>
+            <div><span>Total Pendapatan</span><strong data-kpi="total_pendapatan">-</strong><small>Transaksi berhasil direkap</small></div>
+        </article>
+        <article class="mis-kpi-card mis-kpi-orders">
+            <div class="mis-kpi-icon">{{ icon('chart') }}</div>
+            <div><span>Transaksi Berhasil</span><strong data-kpi="transaksi_berhasil">-</strong><small data-kpi-subtitle="total_transaksi">- total transaksi</small></div>
+        </article>
+        <article class="mis-kpi-card mis-kpi-average">
+            <div class="mis-kpi-icon">{{ icon('receipt') }}</div>
+            <div><span>Rata-rata Transaksi</span><strong data-kpi="rata_rata_transaksi">-</strong><small>Nilai transaksi berhasil</small></div>
+        </article>
+        <article class="mis-kpi-card mis-kpi-alert">
+            <div class="mis-kpi-icon">{{ icon('alert') }}</div>
+            <div><span>Perlu Perhatian</span><strong data-kpi="alert_terbuka">-</strong><small data-kpi-alert-caption>Alert terbuka</small></div>
+        </article>
+    </div>
+
+    <div class="mis-chart-grid">
+        <article class="mis-panel mis-chart-panel mis-chart-wide">
+            <div class="mis-panel-heading">
+                <div><h3>Tren Penjualan</h3><p>Pendapatan dan transaksi berhasil per hari</p></div>
+                <span class="mis-panel-badge">Penjualan</span>
+            </div>
+            <div class="mis-line-chart" data-chart-sales>
+                <div class="mis-chart-loading">Memuat grafik...</div>
+            </div>
+        </article>
+
+        <article class="mis-panel mis-chart-wide">
+            <div class="mis-panel-heading">
+                <div><h3>Produk Terlaris</h3><p>Berdasarkan jumlah unit terjual</p></div>
+                <span class="mis-panel-badge">Produk</span>
+            </div>
+            <div class="mis-bar-list" data-chart-products>
+                <div class="mis-chart-loading">Memuat data...</div>
+            </div>
+        </article>
+
+        {% if user.role == 'admin' %}
+        <article class="mis-panel mis-chart-wide">
+            <div class="mis-panel-heading">
+                <div><h3>Perbandingan Cabang</h3><p>Pendapatan berhasil antar cabang</p></div>
+                <span class="mis-panel-badge">Cabang</span>
+            </div>
+            <div class="mis-branch-list" data-chart-branches>
+                <div class="mis-chart-loading">Memuat data...</div>
+            </div>
+        </article>
+        {% endif %}
+    </div>
+
+    <div class="mis-monitor-grid">
+        <article class="mis-panel">
+            <div class="mis-panel-heading">
+                <div><h3>Monitoring Stok</h3><p>Posisi stok dari snapshot terbaru</p></div>
+                <span class="mis-panel-badge">Stok</span>
+            </div>
+            <div class="mis-stock-summary">
+                <div class="mis-stock-item stock-normal"><strong data-stock-count="normal">0</strong><span>Normal</span></div>
+                <div class="mis-stock-item stock-warning"><strong data-stock-count="menipis">0</strong><span>Menipis</span></div>
+                <div class="mis-stock-item stock-danger"><strong data-stock-count="habis">0</strong><span>Habis</span></div>
+            </div>
+            <div class="mis-stock-list" data-stock-list></div>
+        </article>
+
+        <article class="mis-panel">
+            <div class="mis-panel-heading">
+                <div><h3>Alert Monitoring</h3><p>Hal yang memerlukan perhatian</p></div>
+                <span class="mis-panel-badge mis-panel-badge-alert">Live</span>
+            </div>
+            <div class="mis-alert-list" data-alert-list></div>
+        </article>
+    </div>
+</section>
+
+<script src="{{ url_for('static', filename='mis_dashboard.js') }}"></script>

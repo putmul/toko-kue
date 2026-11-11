@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Produk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container"><div class="card">
+    <h1>Edit Produk</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama Produk</label>
+        <input name="nama" value="{{ produk.nama }}" required>
+        <label>Harga</label>
+        <input type="number" name="harga" min="1" step="0.01" value="{{ produk.harga }}" required>
+        <p>Stok saat ini: {{ produk.stok }}</p>
+        <button type="submit">Simpan</button>
+    </form>
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('admin_produk') }}">{{ icon('arrow-left') }} Kembali ke Produk</a></div>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

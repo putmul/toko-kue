@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Sistem Transaksi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+    <h2>Admin Toko Kue</h2>
+
+    <div>
+        Halo, {{ user.nama }}
+        <span class="topbar-divider">|</span>
+        {% include 'partials/topbar_knowledge.html' %}
+        <span class="topbar-divider">|</span>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <main class="dashboard-content">
+        <div class="container">
+            <div class="dashboard-hero">
+                <div>
+                    <span class="eyebrow">ADMINISTRATION</span>
+                    <h1>Dashboard Admin</h1>
+                    <p>Kelola transaksi, persediaan, cabang, employee, dan knowledge dari menu di samping.</p>
+                </div>
+                <div class="hero-icon">{{ icon('settings') }}</div>
+            </div>
+            <div class="quick-grid">
+                <div class="quick-card"><span class="quick-icon">{{ icon('box') }}</span><div><strong>Operasional Toko</strong><small>Katalog, stok, supplier, dan request stok</small></div></div>
+                <div class="quick-card"><span class="quick-icon">{{ icon('users') }}</span><div><strong>Organisasi</strong><small>Cabang dan employee</small></div></div>
+                <div class="quick-card"><span class="quick-icon">{{ icon('book') }}</span><div><strong>Knowledge</strong><small>SOP, resep, dan materi pelatihan</small></div></div>
+            </div>
+            {% include 'partials/mis_dashboard.html' %}
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

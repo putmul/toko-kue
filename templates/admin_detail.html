@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>
+        Detail Transaksi #{{ transaksi.transaksi_id }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+
+    <h2>Admin Toko Kue</h2>
+
+    <div>
+
+        <a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">
+            Dashboard
+        </a>
+
+        |
+
+        {% include 'partials/topbar_knowledge.html' %}
+
+        |
+
+        <a href="{{ url_for('admin_transaksi') }}">
+            Histori Transaksi
+        </a>
+
+        |
+
+        <a href="{{ url_for('logout') }}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+
+    <h1>
+        Detail Transaksi #{{ transaksi.transaksi_id }}
+    </h1>
+
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('admin_transaksi') }}">{{ icon('arrow-left') }} Kembali ke Histori</a>
+    </div>
+
+
+    <div class="transaction-info">
+
+        <p>
+            <strong>Pelanggan:</strong>
+            {{ transaksi.pelanggan }}
+        </p>
+
+        <p>
+            <strong>Kasir Penanggung Jawab:</strong>
+
+            {% if transaksi.kasir %}
+                {{ transaksi.kasir }}
+            {% else %}
+                <span class="not-assigned">
+                    Belum ditugaskan
+                </span>
+            {% endif %}
+
+        </p>
+
+        <p>
+            <strong>Tanggal:</strong>
+            {{ transaksi.tanggal }}
+        </p>
+
+        <p>
+            <strong>Cabang:</strong>
+            {{ transaksi.cabang or 'Belum ditentukan' }}
+        </p>
+
+        <p>
+            <strong>Pembayaran:</strong>
+            {{ transaksi.metode_pembayaran }}
+        </p>
+
+        <p>
+
+            <strong>Status:</strong>
+
+            <span class="status {{ transaksi.status }}">
+                {{ transaksi.status }}
+            </span>
+
+        </p>
+
+    </div>
+
+
+    <h2>Detail Pesanan</h2>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Nama Kue</th>
+                <th>Harga</th>
+                <th>Jumlah</th>
+                <th>Subtotal</th>
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+        {% for item in transaksi["items"] %}
+
+            <tr>
+
+                <td>
+                    {{ item.nama }}
+                </td>
+
+                <td>
+                    Rp {{ "{:,.0f}".format(item.harga) }}
+                </td>
+
+                <td>
+                    {{ item.jumlah }}
+                </td>
+
+                <td>
+                    Rp {{ "{:,.0f}".format(item.subtotal) }}
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+
+        <tfoot>
+
+            <tr>
+
+                <th colspan="3">
+                    TOTAL
+                </th>
+
+                <th>
+
+                    {% set total = namespace(value=0) %}
+
+                    {% for item in transaksi["items"] %}
+
+                        {% set total.value =
+                            total.value + item.subtotal %}
+
+                    {% endfor %}
+
+                    Rp {{ "{:,.0f}".format(total.value) }}
+
+                </th>
+
+            </tr>
+
+        </tfoot>
+
+    </table>
+
+</div>
+
+{% include 'partials/workspace_end.html' %}
+</body>
+
+</html>

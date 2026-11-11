@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Riwayat Pembelian</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Pembelian Barang</h2>
+    <div><a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">Dashboard</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Pembelian Supplier ke Gudang</h1>
+    <p><a href="{{ url_for('tambah_pembelian_route') }}">+ Buat Pembelian Supplier</a></p>
+    <table>
+        <thead><tr><th>ID</th><th>Tanggal</th><th>Supplier</th><th>Tujuan</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+        {% for item in pembelian %}
+        <tr>
+            <td>#{{ item.pembelian_id }}</td>
+            <td>{{ item.tanggal }}</td>
+            <td>{{ item.supplier }}</td>
+            <td>Gudang Utama</td>
+            <td>Rp {{ "{:,.0f}".format(item.total_harga) }}</td>
+            <td>{{ item.status }}</td>
+            
+            <td>
+                {% if item.status in ('dipesan', 'diproses') %}
+                <form method="POST" action="{{ url_for('admin_update_status_pembelian', pembelian_id=item.pembelian_id) }}" style="display:inline;">
+                    <button type="submit" name="status" value="diterima">Terima ke Gudang</button>
+                    <button type="submit" name="status" value="dibatalkan">Tolak</button>
+                </form>
+                {% else %}-{% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">Belum ada pembelian.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

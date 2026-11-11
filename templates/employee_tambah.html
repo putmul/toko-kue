@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Employee</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_employee') }}">{{ icon('arrow-left') }} Kembali ke Employee</a></div>
+<div class="card">
+    <h1>Tambah Employee</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama</label><input name="nama" required>
+        <label>Username</label><input name="username" required>
+        <label>Password</label><input type="password" name="password" required>
+        <label>Jabatan</label>
+        <select name="jabatan" required>
+            <option value="">Pilih jabatan</option>
+            <option value="admin">Admin</option>
+            <option value="manajer_cabang">Manager Cabang</option>
+            <option value="kasir">Kasir</option>
+            <option value="pegawai_produksi">Pegawai Produksi</option>
+        </select>
+        <label>Cabang</label>
+        <select name="cabang_id" required>
+            <option value="">Pilih cabang</option>
+            {% for item in cabang %}<option value="{{ item.id }}">{{ item.nama }}</option>{% endfor %}
+        </select>
+        <label>Telepon</label><input name="no_telepon">
+        <label>Alamat</label><textarea name="alamat"></textarea>
+        <button type="submit">Simpan</button>
+    </form>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

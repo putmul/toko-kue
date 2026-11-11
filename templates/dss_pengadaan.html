@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DSS Pengadaan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>DSS Pengadaan</h2>
+    <div><a href="{{ url_for('admin') }}">Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container dss-page">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">DECISION SUPPORT SYSTEM</span>
+            <h1>Pemilihan Supplier dan Rekomendasi Pengadaan</h1>
+            <p>Bandingkan supplier berdasarkan bobot kriteria yang telah ditetapkan admin.</p>
+        </div>
+        <a class="button-link button-secondary" href="{{ url_for('dss_pengaturan') }}">Pengaturan Kriteria</a>
+    </div>
+
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <div class="dss-grid">
+        <section class="card wide-card">
+            <h2>Parameter Pengadaan</h2>
+            <form method="POST" id="dss-form">
+                <div class="two-columns">
+                    <div>
+                        <label for="produk_id">Produk</label>
+                        <select id="produk_id" name="produk_id" required>
+                            <option value="">Pilih produk</option>
+                            {% for item in products %}
+                            <option value="{{ item.id }}" {% if form.produk_id|string == item.id|string %}selected{% endif %}>{{ item.nama }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="jumlah_kebutuhan">Jumlah kebutuhan (unit)</label>
+                        <input id="jumlah_kebutuhan" name="jumlah_kebutuhan" type="number" min="1" required value="{{ form.jumlah_kebutuhan }}" placeholder="Contoh: 20">
+                    </div>
+                </div>
+
+                <label for="cabang_id">Cabang untuk konteks stok (opsional)</label>
+                <select id="cabang_id" name="cabang_id">
+                    <option value="">Semua cabang</option>
+                    {% for item in branches %}
+                    <option value="{{ item.id }}" {% if form.cabang_id|string == item.id|string %}selected{% endif %}>{{ item.nama }}</option>
+                    {% endfor %}
+                </select>
+
+                <div class="dss-stock-grid" aria-live="polite">
+                    <div class="dss-stock-card">
+                        <span>Stok gudang</span>
+                        <strong id="dss-stok-gudang">-</strong>
+                        <small>Diambil otomatis dari database</small>
+                    </div>
+                    <div class="dss-stock-card">
+                        <span>Stok cabang</span>
+                        <strong id="dss-stok-cabang">-</strong>
+                        <small id="dss-stok-cabang-label">Total cabang aktif</small>
+                    </div>
+                    <div class="dss-stock-card">
+                        <span>Batas minimum</span>
+                        <strong id="dss-stok-minimum">-</strong>
+                        <small>Referensi persediaan produk</small>
+                    </div>
+                </div>
+
+                <button type="submit">Hitung Rekomendasi</button>
+            </form>
+        </section>
+
+        <section class="card dss-criteria-card">
+            <h2>Kriteria Aktif</h2>
+            <p>Bobot dapat diubah dari menu pengaturan.</p>
+            {% for item in criteria if item.aktif %}
+            <div class="dss-criterion-row">
+                <span>{{ item.nama_kriteria }} <small>{{ item.tipe|title }}</small></span>
+                <strong>{{ "%.2f"|format(item.bobot|float) }}%</strong>
+            </div>
+            {% else %}
+            <p class="error">Belum ada kriteria aktif.</p>
+            {% endfor %}
+        </section>
+    </div>
+
+    {% if result %}
+    <section class="dss-result-section">
+        <div class="page-heading">
+            <div>
+                <h2>Hasil Rekomendasi</h2>
+                <p>{{ result.product.nama }} — kebutuhan {{ result.requested_qty }} unit.</p>
+            </div>
+            <div class="dss-recommendation-badge">Rekomendasi: {{ result.recommended.supplier }}</div>
+        </div>
+
+        <div class="dss-summary-grid">
+            <div><span>Supplier terbaik</span><strong>{{ result.recommended.supplier }}</strong></div>
+            <div><span>Jumlah pembelian</span><strong>{{ result.recommended.jumlah_pembelian }} unit</strong></div>
+            <div><span>Estimasi biaya</span><strong>Rp {{ "{:,.0f}".format(result.recommended.total_biaya) }}</strong></div>
+            <div><span>Estimasi tiba</span><strong>{{ result.recommended.estimasi_tiba }}</strong></div>
+            <div><span>Stok gudang</span><strong>{{ result.product.stok_gudang }} unit</strong></div>
+            <div><span>Stok cabang</span><strong>{{ result.product.stok_cabang }} unit</strong></div>
+        </div>
+
+        <div class="table-scroll">
+            <table class="dss-result-table">
+                <thead>
+                    <tr>
+                        <th>Peringkat</th>
+                        <th>Supplier</th>
+                        <th>Harga/Unit</th>
+                        <th>Pengiriman</th>
+                        <th>Min. Order</th>
+                        <th>Keandalan</th>
+                        <th>Skor Akhir</th>
+                        <th>Jumlah Beli</th>
+                        <th>Estimasi Biaya</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in result.ranked %}
+                    <tr {% if loop.first %}class="dss-best-row"{% endif %}>
+                        <td><strong>#{{ item.peringkat }}</strong></td>
+                        <td>{{ item.supplier }}{% if loop.first %}<span class="status dss-best-status">Terbaik</span>{% endif %}</td>
+                        <td>Rp {{ "{:,.0f}".format(item.harga_beli) }}</td>
+                        <td>{{ item.waktu_pengiriman_hari }} hari</td>
+                        <td>{{ item.minimum_order }} unit</td>
+                        <td>{{ "%.2f"|format(item.tingkat_keandalan) }}%</td>
+                        <td><strong>{{ "%.4f"|format(item.skor_akhir) }}</strong></td>
+                        <td>{{ item.jumlah_pembelian }} unit</td>
+                        <td>Rp {{ "{:,.0f}".format(item.total_biaya) }}</td>
+                        <td>
+                            {% if loop.first %}
+                            <a class="button-link button-success" href="{{ url_for('dss_use_recommendation', recommendation_id=result.recommendation_id) }}">Gunakan</a>
+                            {% else %}-{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% include 'partials/workspace_end.html' %}
+<script src="{{ url_for('static', filename='dss_pengadaan.js') }}"></script>
+</body>
+</html>

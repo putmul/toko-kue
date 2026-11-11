@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Sistem Transaksi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+{% include 'partials/icon_sprite.html' %}
+{% from 'partials/icon.html' import icon %}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-brand-mark">{{ icon('cake') }}</div>
+            <h1>Sistem Toko Kue</h1>
+            <p>TPS · OAS · Knowledge Management</p>
+        </div>
+
+        <div class="card">
+
+        <h2>Login</h2>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+
+            <label>Username</label>
+            <input type="text" name="username" required>
+
+            <label>Password</label>
+            <input type="password" name="password" required>
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <p>
+            Belum punya akun?
+            <a href="{{ url_for('register') }}">
+                Register
+            </a>
+        </p>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expert System Supplier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Expert System Supplier</h2>
+    <div><a href="{{ url_for('admin') }}">Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container expert-page">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">EXPERT SYSTEM</span>
+            <h1>Evaluasi Supplier dan Kebutuhan Pembelian</h1>
+            <p>Sistem mengevaluasi supplier per produk berdasarkan histori pembelian dan insiden.</p>
+        </div>
+        <form method="POST" action="{{ url_for('expert_evaluate') }}">
+            <button type="submit">Evaluasi Semua Supplier</button>
+        </form>
+    </div>
+
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <section class="card">
+        <h2>Notifikasi Pembelian</h2>
+        <p>Notifikasi tidak dibuat ulang jika masih ada pesanan aktif untuk produk yang sama.</p>
+        <div class="table-scroll"><table>
+            <thead><tr><th>Prioritas</th><th>Produk</th><th>Pesan</th><th>Rule</th><th>Aksi</th></tr></thead>
+            <tbody>
+            {% for item in notifications %}
+            <tr><td>{{ item.prioritas|title }}</td><td>{{ item.produk or '-' }}</td><td>{{ item.pesan }}</td><td>{{ item.rule_code }}</td><td><form method="POST" action="{{ url_for('expert_notification_read', notification_id=item.id) }}"><button type="submit">Tandai dibaca</button></form></td></tr>
+            {% else %}<tr><td colspan="5">Tidak ada kebutuhan pembelian baru.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </section>
+
+    <section class="card">
+        <h2>Evaluasi Supplier per Produk</h2>
+        <div class="table-scroll"><table>
+            <thead><tr><th>Supplier</th><th>Produk</th><th>Pembelian</th><th>Terlambat</th><th>Insiden</th><th>Status</th><th>Penjelasan</th></tr></thead>
+            <tbody>
+            {% for item in evaluations %}
+            <tr>
+                <td>{{ item.supplier }}</td><td>{{ item.produk }}</td>
+                <td>{{ item.jumlah_pembelian }}</td>
+                <td>{{ item.jumlah_terlambat }} ({{ "%.1f"|format(item.tingkat_keterlambatan * 100) }}%)</td>
+                <td>{{ item.jumlah_insiden }} ({{ "%.1f"|format(item.tingkat_insiden * 100) }}%)</td>
+                <td><span class="status">{{ item.status_evaluasi|replace('_', ' ')|title }}</span></td>
+                <td>{{ item.diagnosis }}<br><small>{{ item.rekomendasi_tindakan }}</small></td>
+            </tr>
+            {% else %}<tr><td colspan="7">Belum ada evaluasi supplier.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </section>
+
+    <section class="card">
+        <h2>Catat Insiden Supplier</h2>
+        <p>Catat keterlambatan, kerusakan, kekurangan, masa simpan, atau retur agar evaluasi berikutnya memakai fakta operasional.</p>
+        <form method="POST" action="{{ url_for('expert_incident') }}">
+            <div class="two-columns">
+                <div><label>Supplier dan produk</label><select name="supplier_product" required>
+                    <option value="">Pilih supplier dan produk</option>
+                    {% for item in supplier_products %}<option value="{{ item.supplier_id }}|{{ item.produk_id }}">{{ item.supplier }} — {{ item.produk }}</option>{% endfor %}
+                </select></div>
+                <div><label>ID pembelian (opsional)</label><input name="pembelian_id" type="number" min="1" placeholder="Nomor purchase order"></div>
+            </div>
+            <div class="two-columns">
+                <div><label>Jenis insiden</label><select name="jenis" required><option value="terlambat">Terlambat</option><option value="rusak">Rusak</option><option value="kurang">Jumlah kurang</option><option value="masa_simpan">Masa simpan</option><option value="retur">Retur</option></select></div>
+                <div><label>Jumlah</label><input name="jumlah" type="number" min="1" value="1" required></div>
+            </div>
+            <label>Keterangan</label><textarea name="keterangan" required placeholder="Jelaskan kejadian supplier"></textarea>
+            <button type="submit">Simpan Insiden dan Evaluasi</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Tindakan Supplier</h2>
+        <div class="table-scroll"><table>
+            <thead><tr><th>Supplier</th><th>Produk</th><th>Tindakan</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+            {% for item in actions %}
+            <tr>
+                <td>{{ item.supplier }}</td><td>{{ item.produk }}</td>
+                <td>{{ item.jenis_tindakan|replace('_', ' ')|title }}</td><td>{{ item.alasan }}</td><td>{{ item.status|title }}</td>
+                <td>{% if item.status == 'terbuka' %}
+                    <form method="POST" action="{{ url_for('expert_action_decision', action_id=item.id) }}">
+                        <button name="decision" value="disetujui">Setujui</button>
+                        <button name="decision" value="ditolak" type="submit">Tolak</button>
+                    </form>{% else %}-{% endif %}</td>
+            </tr>
+            {% else %}<tr><td colspan="6">Belum ada tindakan supplier.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </section>
+
+    <!-- <section class="card">
+        <h2>Penjelasan Peran</h2>
+        <p><strong>Expert System</strong> menyaring supplier, menemukan masalah, mencegah pembelian ganda, dan merekomendasikan tindakan.</p>
+        <p><strong>DSS</strong> memilih supplier terbaik dari supplier yang masih layak berdasarkan skor dan bobot kriteria.</p>
+    </section> -->
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

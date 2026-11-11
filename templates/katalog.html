@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Katalog Kue</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+
+    <h2>Toko Kue</h2>
+
+    <div>
+
+        Halo, {{ user.nama }}
+        <span class="topbar-divider">|</span>
+        {% include 'partials/topbar_knowledge.html' %}
+        <span class="topbar-divider">|</span>
+        <a href="{{ url_for('logout') }}">Logout</a>
+
+    </div>
+
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <main class="dashboard-content">
+    <div class="container">
+
+    <h1>Katalog Kue</h1>
+
+    {% if keranjang_dikosongkan %}
+        <p class="error">Keranjang dikosongkan karena cabang pembelian diubah.</p>
+    {% endif %}
+
+    <div class="card">
+        <form method="GET" action="{{ url_for('katalog') }}">
+            <label>Pilih Cabang Pembelian</label>
+            <select name="cabang_id" required>
+                <option value="">Pilih cabang</option>
+                {% for item in cabang %}
+                <option value="{{ item.id }}" {% if cabang_id == item.id %}selected{% endif %}>
+                    {{ item.nama }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit">Gunakan Cabang</button>
+        </form>
+        {% if not cabang_id %}
+            <p>Silakan pilih cabang sebelum menambahkan produk.</p>
+        {% endif %}
+    </div>
+
+    <div class="products">
+
+        {% for item in produk %}
+
+        <div class="product-card">
+
+            <h2>
+                {{ item.nama }}
+            </h2>
+
+            <p class="price">
+                Rp {{ "{:,.0f}".format(item.harga) }}
+            </p>
+
+            <p>
+                Stok: {{ item.stok }}
+            </p>
+
+
+            {% if cabang_id and item.stok > 0 %}
+
+            <form
+                method="POST"
+                action="{{ url_for(
+                    'tambah_keranjang',
+                    produk_id=item.id
+                ) }}"
+            >
+
+                <button type="submit">
+                    {{ icon('cart') }} Tambah ke Keranjang
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <button disabled>
+                Stok Habis
+            </button>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+    </main>
+</div>
+
+</body>
+
+</html>

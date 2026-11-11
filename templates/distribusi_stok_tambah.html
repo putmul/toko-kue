@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html><head><title>Buat Distribusi Stok</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>{% include 'partials/top_module_nav.html' %}{% include 'partials/workspace_start.html' %}
+<div class="container"><div class="card"><h1>Buat Distribusi Stok</h1>{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST">{% for item in permintaan %}<div class="form-row"><label>{{ item.produk }} — diminta {{ item.jumlah }} unit</label><input type="number" name="jumlah_{{ item.produk_id }}" min="0" max="{{ item.jumlah }}" value="{{ item.jumlah }}"></div>{% endfor %}<label>Catatan</label><textarea name="catatan"></textarea><button type="submit">Buat Distribusi</button></form></div></div>
+{% include 'partials/workspace_end.html' %}</body></html>

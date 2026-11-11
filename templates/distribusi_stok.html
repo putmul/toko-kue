@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html><head><title>Distribusi Stok</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>{% include 'partials/top_module_nav.html' %}{% include 'partials/workspace_start.html' %}
+<div class="container"><h1>Distribusi Stok ke Cabang</h1>
+<table><thead><tr><th>ID</th><th>Cabang</th><th>Produk</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+{% for item in distribusi %}<tr><td>#{{ item.distribusi_id }}</td><td>{{ item.cabang }}</td><td>{{ item.detail }}</td><td>{{ item.tanggal }}</td><td>{{ item.status }}</td><td>
+{% if user.role == 'admin' and item.status == 'diproses' %}<form method="POST" action="{{ url_for('admin_update_status_distribusi', distribusi_id=item.distribusi_id) }}"><button name="status" value="dikirim">Kirim</button><button name="status" value="dibatalkan">Batalkan</button></form>{% else %}-{% endif %}</td></tr>
+{% else %}<tr><td colspan="6">Belum ada distribusi stok.</td></tr>{% endfor %}</tbody></table></div>
+{% include 'partials/workspace_end.html' %}</body></html>

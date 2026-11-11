@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_employee') }}">{{ icon('arrow-left') }} Kembali ke Employee</a></div>
+<div class="card">
+    <h1>Edit Employee</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama</label><input name="nama" value="{{ employee.nama }}" required>
+        <label>Username</label><input name="username" value="{{ employee.username }}" required>
+        <label>Password Baru (opsional)</label><input type="password" name="password">
+        <label>Jabatan</label>
+        <select name="jabatan" required>
+            <option value="admin" {% if employee.jabatan == 'admin' %}selected{% endif %}>Admin</option>
+            <option value="manajer_cabang" {% if employee.jabatan == 'manajer_cabang' %}selected{% endif %}>Manager Cabang</option>
+            <option value="kasir" {% if employee.jabatan == 'kasir' %}selected{% endif %}>Kasir</option>
+            <option value="pegawai_produksi" {% if employee.jabatan == 'pegawai_produksi' %}selected{% endif %}>Pegawai Produksi</option>
+        </select>
+        <label>Cabang</label>
+        <select name="cabang_id" required>
+            {% for item in cabang %}<option value="{{ item.id }}" {% if employee.cabang_id == item.id %}selected{% endif %}>{{ item.nama }}</option>{% endfor %}
+        </select>
+        <label>Telepon</label><input name="no_telepon" value="{{ employee.no_telepon or '' }}">
+        <label>Alamat</label><textarea name="alamat">{{ employee.alamat or '' }}</textarea>
+        <label>Status</label>
+        <select name="status" required>
+            <option value="aktif" {% if employee.status == 'aktif' %}selected{% endif %}>Aktif</option>
+            <option value="nonaktif" {% if employee.status == 'nonaktif' %}selected{% endif %}>Nonaktif / Dipecat</option>
+        </select>
+        <button type="submit">Simpan</button>
+    </form>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

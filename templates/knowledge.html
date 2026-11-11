@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Knowledge Management - Toko Kue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Knowledge Management Toko Kue</h2>
+    <div>Halo, {{ user.nama }} <span class="topbar-divider">|</span> {% include 'partials/topbar_knowledge.html' %} <span class="topbar-divider">|</span> <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <main class="dashboard-content">
+    <div class="container">
+    <div class="page-heading">
+        <div>
+            <h1>Knowledge Management</h1>
+            <p>Temukan SOP, resep produksi, FAQ, dan pengalaman kerja.</p>
+        </div>
+        {% if can_manage %}
+        <a class="button-link" href="{{ url_for('knowledge_add') }}">+ Tulis Artikel</a>
+        {% endif %}
+    </div>
+    {% if user.role == 'pelanggan' %}
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('katalog') }}">{{ icon('arrow-left') }} Kembali ke Katalog</a>
+    </div>
+    {% endif %}
+
+    <div class="knowledge-toolbar">
+        <form method="GET" action="{{ url_for('knowledge_index') }}">
+            <input type="search" name="q" value="{{ search }}" placeholder="Cari judul atau isi artikel...">
+            <select name="category_id">
+                <option value="">Semua kategori</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                    {{ category.nama }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if user.role == 'admin' %}
+            <select name="status">
+                <option value="">Semua status</option>
+                {% for item in ['draft', 'menunggu_review', 'published', 'archived'] %}
+                <option value="{{ item }}" {% if selected_status == item %}selected{% endif %}>{{ item|replace('_', ' ')|title }}</option>
+                {% endfor %}
+            </select>
+            <select name="visibility">
+                <option value="">Semua visibilitas</option>
+                <option value="publik" {% if selected_visibility == 'publik' %}selected{% endif %}>Publik</option>
+                <option value="internal" {% if selected_visibility == 'internal' %}selected{% endif %}>Internal</option>
+                <option value="cabang" {% if selected_visibility == 'cabang' %}selected{% endif %}>Cabang</option>
+            </select>
+            {% endif %}
+            <button type="submit">Cari</button>
+        </form>
+        {% if user.role == 'admin' %}
+        <a class="button-link button-secondary knowledge-category-button" href="{{ url_for('knowledge_categories') }}">{{ icon('settings') }} Kelola kategori</a>
+        {% endif %}
+    </div>
+
+    <div class="knowledge-grid">
+        {% for article in articles %}
+        <article class="knowledge-card">
+            <div class="knowledge-card-top">
+                <span class="knowledge-category">{{ article.kategori_nama }}</span>
+                <span class="status status-{{ article.status }}">{{ article.status|replace('_', ' ') }}</span>
+            </div>
+            <h2><a href="{{ url_for('knowledge_detail', slug=article.slug) }}">{{ article.judul }}</a></h2>
+            <p>{{ article.ringkasan or article.isi[:180] }}{% if article.isi|length > 180 %}...{% endif %}</p>
+            <small>Visibilitas: {{ article.visibility }} · Diperbarui {{ article.updated_at }}</small>
+            {% if user.role == 'admin' and article.status == 'menunggu_review' %}
+            <div class="inline-actions">
+                <form method="POST" action="{{ url_for('knowledge_review', article_id=article.id) }}">
+                    <input type="hidden" name="status" value="published">
+                    <button type="submit">Setujui & Publikasikan</button>
+                </form>
+                <form method="POST" action="{{ url_for('knowledge_review', article_id=article.id) }}">
+                    <input type="hidden" name="status" value="draft">
+                    <button class="button-secondary" type="submit">Tolak / Kembalikan</button>
+                </form>
+            </div>
+            {% endif %}
+        </article>
+        {% else %}
+        <div class="empty-state">Belum ada artikel yang sesuai.</div>
+        {% endfor %}
+    </div>
+    </div>
+    </main>
+</div>
+</body>
+</html>

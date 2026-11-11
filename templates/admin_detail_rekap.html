@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detail Rekap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav><h2>Detail Rekap</h2><div><a href="{{ url_for('admin_rekap_pendapatan') }}">Kembali</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div></nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('admin_rekap_pendapatan') }}">{{ icon('arrow-left') }} Kembali ke Rekap</a></div>
+    <h1>Rekap Transaksi #{{ rekap.transaksi_id }}</h1>
+    <p><strong>Cabang:</strong> {{ rekap.cabang }}</p>
+    <p><strong>Pelanggan:</strong> {{ rekap.pelanggan }}</p>
+    <p><strong>Tanggal:</strong> {{ rekap.tanggal_transaksi }}</p>
+    <p><strong>Status Rekap:</strong> {{ rekap.status_rekap }}</p>
+    <p><strong>Direkap oleh:</strong> {{ rekap.direkap_oleh }}</p>
+    <p><strong>Catatan:</strong> {{ rekap.catatan or '-' }}</p>
+    <table>
+        <thead><tr><th>Produk</th><th>Jumlah</th><th>Harga</th><th>Subtotal</th></tr></thead>
+        <tbody>
+        {% for item in rekap["items"] %}
+        <tr><td>{{ item.nama }}</td><td>{{ item.jumlah }}</td><td>Rp {{ "{:,.0f}".format(item.harga_satuan) }}</td><td>Rp {{ "{:,.0f}".format(item.subtotal) }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

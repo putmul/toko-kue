@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rekap Transaksi Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Rekap Transaksi Cabang</h2>
+    <div><a href="{{ url_for('manajer') }}">Dashboard</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('manajer') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a></div>
+    <h1>Rekap Transaksi</h1>
+    <p>Centang transaksi yang tidak berhasil atau dibatalkan. Transaksi yang tidak dicentang dihitung sebagai pendapatan.</p>
+    <form method="POST" action="{{ url_for('simpan_rekap_transaksi_route') }}">
+        <table>
+            <thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Total</th><th>Status Transaksi</th><th>Tidak Berhasil / Dibatalkan</th><th>Catatan</th></tr></thead>
+            <tbody>
+            {% for item in transaksi %}
+            <tr>
+                <td>#{{ item.transaksi_id }}<input type="hidden" name="transaksi_ids" value="{{ item.transaksi_id }}"></td>
+                <td>{{ item.tanggal }}</td>
+                <td>{{ item.pelanggan }}</td>
+                <td>Rp {{ "{:,.0f}".format(item.total_harga) }}</td>
+                <td>{{ item.status }}</td>
+                <td><input type="checkbox" name="dibatalkan_ids" value="{{ item.transaksi_id }}" {% if item.status_rekap != 'berhasil' %}checked{% endif %}></td>
+                <td><input name="catatan_{{ item.transaksi_id }}" value="{{ item.catatan or '' }}"></td>
+            </tr>
+            {% else %}<tr><td colspan="7">Belum ada transaksi di cabang ini.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+        {% if transaksi %}<button type="submit">Simpan / Perbarui Rekap</button>{% endif %}
+    </form>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Kue - Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+    <h2>Admin Toko Kue</h2>
+
+    <div>
+        <a href="{{ url_for('admin') }}">Dashboard</a>
+        |
+        {% include 'partials/topbar_knowledge.html' %}
+        |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('admin') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a>
+    </div>
+
+    <div class="card">
+
+        <h2>Tambah Kue</h2>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+
+            <label>Nama Kue</label>
+            <input
+                type="text"
+                name="nama"
+                required
+            >
+
+            <label>Harga</label>
+            <input
+                type="number"
+                name="harga"
+                min="1"
+                required
+            >
+
+            <label>Stok</label>
+            <input
+                type="number"
+                name="stok"
+                min="0"
+                required
+            >
+
+            <button type="submit">
+                Tambahkan
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

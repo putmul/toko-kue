@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav><h2>Cabang</h2><div><a href="{{ url_for('admin') }}">Dashboard</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div></nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Daftar Cabang</h1>
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('admin') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a></div>
+    <p><a href="{{ url_for('tambah_cabang_route') }}">+ Tambah Cabang</a></p>
+    <table>
+        <thead><tr><th>Nama</th><th>Alamat</th><th>Telepon</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+        {% for item in cabang %}
+        <tr><td>{{ item.nama }}</td><td>{{ item.alamat }}</td><td>{{ item.telepon or '-' }}</td><td>{{ item.status }}</td><td><a href="{{ url_for('edit_cabang_route', cabang_id=item.id) }}">Edit</a></td></tr>
+        {% else %}<tr><td colspan="5">Belum ada cabang.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

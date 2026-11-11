@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rekap Pendapatan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav><h2>Rekap Pendapatan</h2><div><a href="{{ url_for('admin') }}">Dashboard</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div></nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Hasil Rekap Cabang</h1>
+    <table>
+        <thead><tr><th>Transaksi</th><th>Tanggal Transaksi</th><th>Cabang</th><th>Pelanggan</th><th>Total</th><th>Hasil Rekap</th><th>Direkap Oleh</th><th>Detail</th></tr></thead>
+        <tbody>
+        {% for item in rekap %}
+        <tr>
+            <td>#{{ item.transaksi_id }}</td>
+            <td>{{ item.tanggal_transaksi }}</td>
+            <td>{{ item.cabang }}</td>
+            <td>{{ item.pelanggan }}</td>
+            <td>Rp {{ "{:,.0f}".format(item.total_harga) }}</td>
+            <td>{{ item.status_rekap }}</td>
+            <td>{{ item.direkap_oleh }}</td>
+            <td><a href="{{ url_for('admin_detail_rekap', rekap_id=item.rekap_id) }}">Lihat</a></td>
+        </tr>
+        {% else %}<tr><td colspan="8">Belum ada rekap.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

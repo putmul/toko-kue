@@ -1,0 +1,14 @@
+{% from 'partials/icon.html' import icon %}
+{% if user.role in ['admin', 'manajer_cabang', 'kasir', 'pelanggan', 'pegawai_produksi'] %}
+<a class="topbar-knowledge {% if request.endpoint in ['knowledge_index', 'knowledge_detail', 'knowledge_add', 'knowledge_edit', 'knowledge_categories'] %}active{% endif %}" href="{{ url_for('knowledge_index') }}">{{ icon('book', 'ui-icon-topbar') }} Knowledge</a>
+{% if user.role == 'admin' %}
+<span class="topbar-divider">|</span>
+<a class="topbar-knowledge" href="{{ url_for('admin') }}">Dashboard</a>
+{% elif user.role == 'manajer_cabang' %}
+<span class="topbar-divider">|</span>
+<a class="topbar-knowledge" href="{{ url_for('manajer') }}">Dashboard</a>
+{% elif user.role == 'kasir' %}
+<span class="topbar-divider">|</span>
+<a class="topbar-knowledge" href="{{ url_for('kasir') }}">Dashboard</a>
+{% endif %}
+{% endif %}

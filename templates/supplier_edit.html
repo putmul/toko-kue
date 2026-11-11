@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Supplier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container"><div class="card">
+    <h1>Edit Supplier</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama Perusahaan</label><input name="nama_perusahaan" value="{{ supplier.nama_perusahaan }}" required>
+        <label>Nama Kontak</label><input name="nama_kontak" value="{{ supplier.nama_kontak or '' }}">
+        <label>Telepon</label><input name="telepon" value="{{ supplier.telepon or '' }}">
+        <label>Email</label><input type="email" name="email" value="{{ supplier.email or '' }}">
+        <label>Alamat</label><textarea name="alamat">{{ supplier.alamat or '' }}</textarea>
+        <label>Status Kerja Sama</label>
+        <select name="status" required>
+            <option value="aktif" {% if supplier.status == 'aktif' %}selected{% endif %}>Aktif</option>
+            <option value="nonaktif" {% if supplier.status == 'nonaktif' %}selected{% endif %}>Nonaktif / Putus Kerja Sama</option>
+        </select>
+        <button type="submit">Simpan</button>
+    </form>
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('supplier') }}">{{ icon('arrow-left') }} Kembali ke Supplier</a></div>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

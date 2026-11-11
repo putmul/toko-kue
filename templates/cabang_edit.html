@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_cabang') }}">{{ icon('arrow-left') }} Kembali ke Cabang</a></div>
+<div class="card">
+    <h1>Edit Cabang</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama Cabang</label><input name="nama" value="{{ cabang.nama }}" required>
+        <label>Alamat</label><textarea name="alamat" required>{{ cabang.alamat }}</textarea>
+        <label>Telepon</label><input name="telepon" value="{{ cabang.telepon or '' }}">
+        <label>Status</label>
+        <select name="status" required>
+            <option value="aktif" {% if cabang.status == 'aktif' %}selected{% endif %}>Aktif</option>
+            <option value="nonaktif" {% if cabang.status == 'nonaktif' %}selected{% endif %}>Nonaktif / Ditutup</option>
+        </select>
+        <button type="submit">Simpan</button>
+    </form>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detail Pendapatan {{ tanggal }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Detail Pendapatan</h2>
+    <div><a href="{{ url_for('laporan_pendapatan') }}">Kembali</a> | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('laporan_pendapatan') }}">{{ icon('arrow-left') }} Kembali ke Laporan</a></div>
+    <h1>Transaksi Berhasil - {{ tanggal }}</h1>
+    <table>
+        <thead><tr><th>ID</th><th>Pelanggan</th><th>Cabang</th><th>Tanggal</th><th>Pembayaran</th><th>Total</th><th>Detail Barang</th></tr></thead>
+        <tbody>
+        {% for transaksi in transaksi %}
+        <tr>
+            <td>#{{ transaksi.transaksi_id }}</td>
+            <td>{{ transaksi.pelanggan }}</td>
+            <td>{{ transaksi.cabang }}</td>
+            <td>{{ transaksi.tanggal }}</td>
+            <td>{{ transaksi.metode_pembayaran }}</td>
+            <td>Rp {{ "{:,.0f}".format(transaksi.total_harga) }}</td>
+            <td>
+                {% for item in transaksi["items"] %}
+                    {{ item.nama }} ({{ item.jumlah }})<br>
+                {% endfor %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">Tidak ada transaksi berhasil pada tanggal ini.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

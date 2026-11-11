@@ -1,0 +1,124 @@
+{% from 'partials/icon.html' import icon %}
+<aside class="sidebar" id="roleSidebar">
+    {% set in_knowledge = request.endpoint in ['knowledge_index', 'knowledge_detail', 'knowledge_add', 'knowledge_edit', 'knowledge_categories'] %}
+    <button class="sidebar-collapse-toggle" type="button" data-sidebar-toggle aria-label="Perkecil sidebar" title="Perkecil sidebar">
+        <span>{{ icon('dashboard') }}</span><b>Perkecil menu</b>
+    </button>
+
+    <div class="sidebar-brand">
+        <span class="sidebar-brand-mark">{{ icon('cake') }}</span>
+        <div class="sidebar-brand-copy">
+            <strong>Sistem Toko Kue</strong>
+            <small>{{ user.role|replace('_', ' ')|title }}</small>
+        </div>
+    </div>
+
+    <div class="sidebar-section-label">Menu Utama</div>
+    <div class="sidebar-menu">
+        {% if user.role == 'admin' %}
+        {% if not in_knowledge %}<a class="sidebar-link {% if request.endpoint == 'admin' %}active{% endif %}" href="{{ url_for('admin') }}">{{ icon('dashboard') }}<em>Dashboard</em></a>{% endif %}
+        {% if in_knowledge %}
+        <div class="sidebar-group expanded" data-sidebar-group="admin-knowledge">
+            <button class="sidebar-group-toggle" type="button">{{ icon('book') }}<em>Management Artikel</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint == 'knowledge_index' and not request.args %}active{% endif %}" href="{{ url_for('knowledge_index') }}">{{ icon('grid') }}<em>Semua Artikel</em></a>
+                <a class="sidebar-link {% if request.args.get('status') == 'menunggu_review' %}active{% endif %}" href="{{ url_for('knowledge_index', status='menunggu_review') }}">{{ icon('clock') }}<em>Review Persetujuan</em></a>
+                <a class="sidebar-link {% if request.args.get('status') == 'published' %}active{% endif %}" href="{{ url_for('knowledge_index', status='published') }}">{{ icon('check') }}<em>Published</em></a>
+                <a class="sidebar-link {% if request.args.get('status') == 'archived' %}active{% endif %}" href="{{ url_for('knowledge_index', status='archived') }}">{{ icon('archive') }}<em>Archived</em></a>
+                <a class="sidebar-link {% if request.args.get('visibility') == 'publik' %}active{% endif %}" href="{{ url_for('knowledge_index', visibility='publik') }}">{{ icon('globe') }}<em>Artikel Publik</em></a>
+                <a class="sidebar-link {% if request.args.get('visibility') == 'internal' %}active{% endif %}" href="{{ url_for('knowledge_index', visibility='internal') }}">{{ icon('lock') }}<em>Artikel Internal</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'knowledge_add' %}active{% endif %}" href="{{ url_for('knowledge_add') }}">{{ icon('plus') }}<em>Tulis Artikel</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'knowledge_categories' %}active{% endif %}" href="{{ url_for('knowledge_categories') }}">{{ icon('tag') }}<em>Kelola Kategori</em></a>
+            </div>
+        </div>
+        {% endif %}
+        <div class="sidebar-group" data-sidebar-group="admin-operasional">
+            <button class="sidebar-group-toggle" type="button">{{ icon('box') }}<em>Operasional</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint in ['admin_produk', 'admin_edit_produk'] %}active{% endif %}" href="{{ url_for('admin_produk') }}">{{ icon('box') }}<em>Katalog & Stok</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'admin_tambah_produk' %}active{% endif %}" href="{{ url_for('admin_tambah_produk') }}">{{ icon('plus') }}<em>Tambah Kue</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'admin_stok' %}active{% endif %}" href="{{ url_for('admin_stok') }}">{{ icon('refresh') }}<em>Ubah Stok</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['supplier', 'tambah_supplier_route', 'edit_supplier_route'] %}active{% endif %}" href="{{ url_for('supplier') }}">{{ icon('building') }}<em>Supplier</em></a>
+                <a class="sidebar-sub-link {% if request.endpoint == 'tambah_supplier_route' %}active{% endif %}" href="{{ url_for('tambah_supplier_route') }}">{{ icon('plus') }}<em>Tambah Supplier</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'daftar_permintaan_stok' %}active{% endif %}" href="{{ url_for('daftar_permintaan_stok') }}">{{ icon('truck') }}<em>Request Stok</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['daftar_pembelian', 'tambah_pembelian_route'] %}active{% endif %}" href="{{ url_for('daftar_pembelian') }}">{{ icon('cart') }}<em>Pembelian Supplier</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['dss_pengadaan', 'dss_pengaturan'] %}active{% endif %}" href="{{ url_for('dss_pengadaan') }}">{{ icon('chart') }}<em>DSS Pengadaan</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['expert_dashboard', 'expert_evaluate', 'expert_action_decision'] %}active{% endif %}" href="{{ url_for('expert_dashboard') }}">{{ icon('check') }}<em>Expert System</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['daftar_distribusi_stok', 'tambah_distribusi_stok_route'] %}active{% endif %}" href="{{ url_for('daftar_distribusi_stok') }}">{{ icon('truck') }}<em>Distribusi Cabang</em></a>
+            </div>
+        </div>
+        <div class="sidebar-group" data-sidebar-group="admin-organisasi">
+            <button class="sidebar-group-toggle" type="button">{{ icon('users') }}<em>Organisasi</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint in ['daftar_cabang', 'tambah_cabang_route', 'edit_cabang_route'] %}active{% endif %}" href="{{ url_for('daftar_cabang') }}">{{ icon('building') }}<em>Cabang</em></a>
+                <a class="sidebar-sub-link {% if request.endpoint == 'tambah_cabang_route' %}active{% endif %}" href="{{ url_for('tambah_cabang_route') }}">{{ icon('plus') }}<em>Tambah Cabang</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['daftar_employee', 'tambah_employee_route', 'edit_employee_route'] %}active{% endif %}" href="{{ url_for('daftar_employee') }}">{{ icon('users') }}<em>Employee</em></a>
+                <a class="sidebar-sub-link {% if request.endpoint == 'tambah_employee_route' %}active{% endif %}" href="{{ url_for('tambah_employee_route') }}">{{ icon('plus') }}<em>Tambah Employee</em></a>
+            </div>
+        </div>
+        <a class="sidebar-link {% if request.endpoint == 'laporan_pendapatan' %}active{% endif %}" href="{{ url_for('laporan_pendapatan') }}">{{ icon('chart') }}<em>Laporan Pendapatan</em></a>
+        {% elif user.role == 'manajer_cabang' %}
+        {% if not in_knowledge %}<a class="sidebar-link {% if request.endpoint == 'manajer' %}active{% endif %}" href="{{ url_for('manajer') }}">{{ icon('dashboard') }}<em>Dashboard</em></a>{% endif %}
+        <div class="sidebar-group" data-sidebar-group="manager-operasional">
+            <button class="sidebar-group-toggle" type="button">{{ icon('truck') }}<em>Operasional Cabang</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint in ['daftar_permintaan_stok', 'tambah_permintaan_stok'] %}active{% endif %}" href="{{ url_for('daftar_permintaan_stok') }}">{{ icon('truck') }}<em>Request Stok</em></a>
+                <a class="sidebar-sub-link {% if request.endpoint == 'tambah_permintaan_stok' %}active{% endif %}" href="{{ url_for('tambah_permintaan_stok') }}">{{ icon('plus') }}<em>Buat Request</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['supplier', 'tambah_supplier_route', 'edit_supplier_route'] %}active{% endif %}" href="{{ url_for('supplier') }}">{{ icon('building') }}<em>Supplier</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['admin_produk', 'admin_edit_produk'] %}active{% endif %}" href="{{ url_for('admin_produk') }}">{{ icon('box') }}<em>Produk & Stok</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'daftar_distribusi_stok' %}active{% endif %}" href="{{ url_for('daftar_distribusi_stok') }}">{{ icon('truck') }}<em>Status Distribusi</em></a>
+            </div>
+        </div>
+        <div class="sidebar-group" data-sidebar-group="manager-penjualan">
+            <button class="sidebar-group-toggle" type="button">{{ icon('chart') }}<em>Penjualan</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint in ['admin_transaksi', 'admin_detail_transaksi'] %}active{% endif %}" href="{{ url_for('admin_transaksi') }}">{{ icon('clipboard') }}<em>Transaksi Penjualan</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['laporan_pendapatan', 'detail_laporan_pendapatan'] %}active{% endif %}" href="{{ url_for('laporan_pendapatan') }}">{{ icon('chart') }}<em>Pendapatan Cabang</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'rekap_transaksi' %}active{% endif %}" href="{{ url_for('rekap_transaksi') }}">{{ icon('receipt') }}<em>Rekap Transaksi</em></a>
+            </div>
+        </div>
+        {% elif user.role == 'kasir' %}
+        <a class="sidebar-link {% if request.endpoint == 'kasir' %}active{% endif %}" href="{{ url_for('kasir') }}">{{ icon('dashboard') }}<em>Dashboard Kasir</em></a>
+        <a class="sidebar-link {% if request.endpoint in ['kasir_detail_transaksi', 'kasir_update_status', 'kasir_ambil_pesanan'] %}active{% endif %}" href="{{ url_for('kasir') }}">{{ icon('receipt') }}<em>Daftar Pesanan</em></a>
+        {% elif user.role == 'pelanggan' %}
+        <a class="sidebar-link {% if request.endpoint == 'katalog' %}active{% endif %}" href="{{ url_for('katalog') }}">{{ icon('dashboard') }}<em>Katalog Kue</em></a>
+        <div class="sidebar-group" data-sidebar-group="customer-purchases">
+            <button class="sidebar-group-toggle" type="button">{{ icon('cart') }}<em>Pembelian</em><b>{{ icon('chevron-down') }}</b></button>
+            <div class="sidebar-group-items">
+                <a class="sidebar-link {% if request.endpoint == 'keranjang' %}active{% endif %}" href="{{ url_for('keranjang') }}">{{ icon('cart') }}<em>Keranjang</em></a>
+                <a class="sidebar-link {% if request.endpoint in ['riwayat', 'invoice'] %}active{% endif %}" href="{{ url_for('riwayat') }}">{{ icon('clipboard') }}<em>Riwayat Transaksi</em></a>
+            </div>
+        </div>
+        {% elif user.role == 'pegawai_produksi' %}
+        <div class="sidebar-note"><strong>Modul Produksi</strong><small>Akses Knowledge Management melalui menu modul di atas.</small></div>
+        {% endif %}
+    </div>
+
+    <a class="sidebar-logout" href="{{ url_for('logout') }}">{{ icon('logout') }}<em>Keluar</em></a>
+</aside>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('roleSidebar');
+    const toggle = document.querySelector('[data-sidebar-toggle]');
+    const storageKey = 'toko-kue-sidebar-collapsed';
+
+    if (localStorage.getItem(storageKey) === '1') sidebar.classList.add('collapsed');
+    toggle.addEventListener('click', function () {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem(storageKey, sidebar.classList.contains('collapsed') ? '1' : '0');
+    });
+
+    document.querySelectorAll('[data-sidebar-group]').forEach(function (group) {
+        const key = 'toko-kue-' + group.dataset.sidebarGroup;
+        const button = group.querySelector('.sidebar-group-toggle');
+        const items = group.querySelector('.sidebar-group-items');
+        const hasActive = group.querySelector('.active');
+        if (localStorage.getItem(key) !== '0' || hasActive) group.classList.add('expanded');
+        button.addEventListener('click', function () {
+            group.classList.toggle('expanded');
+            localStorage.setItem(key, group.classList.contains('expanded') ? '1' : '0');
+        });
+    });
+});
+</script>

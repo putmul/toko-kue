@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Katalog Produk - Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+    <h2>Admin Toko Kue</h2>
+
+    <div>
+        <a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">Dashboard</a>
+        |
+        {% include 'partials/topbar_knowledge.html' %}
+        |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+
+    <h1>Katalog & Stok Kue</h1>
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a>
+    </div>
+
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Produk</th>
+                <th>Harga</th>
+                <th>Stok Gudang</th>
+                <th>Cabang</th>
+                <th>Stok Cabang</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for item in produk %}
+
+        <tr>
+            <td>{{ item.nama }}</td>
+
+            <td>
+                Rp {{ "{:,.0f}".format(item.harga) }}
+            </td>
+
+            <td>
+                {{ item.stok_gudang }}
+            </td>
+
+            <td>{{ item.cabang }}</td>
+            <td>{{ item.stok_cabang }}</td>
+            <td>
+                {% if user.role == 'admin' %}
+                <a href="{{ url_for('admin_edit_produk', produk_id=item.produk_id) }}">Edit</a>
+                <form method="POST" action="{{ url_for('admin_hapus_produk', produk_id=item.produk_id) }}" style="display:inline;"><button type="submit">Hapus</button></form>
+                {% else %}-{% endif %}
+            </td>
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+    </table>
+    {% if user.role == 'admin' %}
+        <p class="muted">Distribusi stok dilakukan melalui Request Stok dan Distribusi Cabang agar tercatat dalam histori.</p>
+        <a class="button-link" href="{{ url_for('daftar_distribusi_stok') }}">Kelola Distribusi Cabang</a>
+    {% endif %}
+
+</div>
+
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

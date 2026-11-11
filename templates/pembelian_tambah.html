@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pembelian Supplier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="card">
+        <h1>Pembelian Supplier ke Gudang</h1>
+        <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_pembelian') }}">{{ icon('arrow-left') }} Kembali</a></div>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="POST">
+            <label>Supplier</label>
+            <select name="supplier_id" required onchange="this.form.submit()">
+                <option value="">Pilih supplier</option>
+                {% for item in suppliers %}
+                <option value="{{ item.id }}" {% if selected_supplier_id == item.id %}selected{% endif %}>{{ item.nama_perusahaan }}</option>
+                {% endfor %}
+            </select>
+
+            {% if supplier_products %}
+            <label>Produk dan jumlah (minimum order ditampilkan)</label>
+            {% for item in supplier_products %}
+                <div class="form-row">
+                    <label>{{ item.produk }} — Rp {{ "{:,.0f}".format(item.harga_beli) }} | min {{ item.minimum_order }} | {{ item.waktu_pengiriman_hari }} hari</label>
+                    <input type="number" name="jumlah_{{ item.produk_id }}" min="0" placeholder="0" value="{{ prefill_quantities.get(item.produk_id, '') }}">
+                </div>
+            {% endfor %}
+            <label>Catatan</label>
+            <textarea name="catatan"></textarea>
+            <button type="submit">Buat Pesanan Supplier</button>
+            {% else %}
+                <p>Pilih supplier untuk melihat produk yang tersedia.</p>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

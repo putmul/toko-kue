@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supplier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Supplier</h2>
+    <div><a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">Dashboard</a> | {% include 'partials/topbar_knowledge.html' %} | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Daftar Supplier</h1>
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a>
+    </div>
+    {% if user.role == 'admin' %}
+    <p><a href="{{ url_for('tambah_supplier_route') }}">+ Tambah Supplier</a></p>
+    {% endif %}
+    <table>
+        <thead><tr><th>Perusahaan</th><th>Kontak</th><th>Telepon</th><th>Email</th><th>Status</th>{% if user.role == 'admin' %}<th>Aksi</th>{% endif %}</tr></thead>
+        <tbody>
+        {% for item in supplier %}
+        <tr>
+            <td>{{ item.nama_perusahaan }}</td>
+            <td>{{ item.nama_kontak or '-' }}</td>
+            <td>{{ item.telepon or '-' }}</td>
+            <td>{{ item.email or '-' }}</td>
+            <td>{{ item.status }}</td>
+            {% if user.role == 'admin' %}<td><a href="{{ url_for('edit_supplier_route', supplier_id=item.id) }}">Edit</a></td>{% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Belum ada supplier.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request Stok Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Request Stok Cabang</h2>
+    <div>
+        <a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">Dashboard</a> |
+        {% include 'partials/topbar_knowledge.html' %} |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Request Stok dari Gudang</h1>
+    <div class="page-actions">
+        <a class="button-link button-secondary" href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a>
+    </div>
+    {% if user.role == 'manajer_cabang' %}
+    <p><a href="{{ url_for('tambah_permintaan_stok') }}">+ Buat Request Stok</a></p>
+    {% endif %}
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Tanggal</th><th>Cabang</th><th>Pengaju</th><th>Produk</th><th>Jumlah</th><th>Status</th>{% if user.role == 'admin' %}<th>Aksi</th>{% endif %}</tr>
+        </thead>
+        <tbody>
+        {% for item in permintaan %}
+        <tr>
+            <td>#{{ item.permintaan_id }}</td>
+            <td>{{ item.tanggal }}</td>
+            <td>{{ item.cabang }}</td>
+            <td>{{ item.employee }}</td>
+            <td>{{ item.produk }}</td>
+            <td>{{ item.jumlah }}</td>
+            <td>{{ item.status }}</td>
+            {% if user.role == 'admin' %}
+            <td>
+                {% if item.status == 'diproses' %}
+                <a class="button-link" href="{{ url_for('tambah_distribusi_stok_route', permintaan_id=item.permintaan_id) }}">Buat Distribusi</a>
+                <form method="POST" action="{{ url_for('admin_update_status_permintaan', permintaan_id=item.permintaan_id) }}" style="display:inline;">
+                    <button name="status" value="dibatalkan">Tolak</button>
+                </form>
+                {% else %}-{% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="8">Belum ada request stok.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

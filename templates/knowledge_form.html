@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if article %}Edit{% else %}Tulis{% endif %} Artikel - Knowledge Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Knowledge Management Toko Kue</h2>
+    <div>Halo, {{ user.nama }} <span class="topbar-divider">|</span> {% include 'partials/topbar_knowledge.html' %} <span class="topbar-divider">|</span> <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('knowledge_index') }}">{{ icon('arrow-left') }} Kembali ke Knowledge</a></div>
+    <div class="card wide-card">
+        <h1>{% if article %}Edit{% else %}Tulis{% endif %} Artikel</h1>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        {% set selected_tags = article.tags|map(attribute='id')|list if article else [] %}
+        {% set recipe = article.recipe if article and article.recipe else {} %}
+        {% set recipe_ingredients = recipe.ingredients if recipe and recipe.ingredients else [] %}
+        <form method="POST" enctype="multipart/form-data">
+            <label>Judul</label>
+            <input name="judul" value="{{ article.judul if article else '' }}" required>
+            <label>Ringkasan</label>
+            <textarea name="ringkasan" rows="3">{{ article.ringkasan if article else '' }}</textarea>
+            <label>Kategori</label>
+            <select name="category_id" required>
+                <option value="">Pilih kategori</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if article and article.category_id == category.id %}selected{% endif %}>{{ category.nama }}</option>
+                {% endfor %}
+            </select>
+            <label>Isi artikel / langkah kerja</label>
+            <textarea name="isi" rows="14" required>{{ article.isi if article else '' }}</textarea>
+            <label>Visibilitas</label>
+            <select name="visibility">
+                <option value="internal" {% if not article or article.visibility == 'internal' %}selected{% endif %}>Internal employee</option>
+                <option value="cabang" {% if article and article.visibility == 'cabang' %}selected{% endif %}>Cabang tertentu</option>
+                <option value="publik" {% if article and article.visibility == 'publik' %}selected{% endif %}>Publik</option>
+            </select>
+            <label>Produk terkait (opsional)</label>
+            <select name="related_product_id">
+                <option value="">Tidak ada</option>
+                {% for item in produk %}
+                <option value="{{ item.id }}" {% if article and article.related_product_id == item.id %}selected{% endif %}>{{ item.nama }}</option>
+                {% endfor %}
+            </select>
+            {% if user.role == 'admin' %}
+            <label>Cabang terkait (opsional)</label>
+            <select name="related_branch_id">
+                <option value="">Tidak ada</option>
+                {% for item in cabang %}
+                <option value="{{ item.id }}" {% if article and article.related_branch_id == item.id %}selected{% endif %}>{{ item.nama }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <section class="recipe-form-box">
+                <h2>Struktur Resep Produksi</h2>
+                <p>Aktifkan bagian ini untuk artikel kategori Resep Produksi.</p>
+                <label><input type="checkbox" name="is_recipe" value="1" {% if (article and article.recipe) or (article and article.category_id == 1) %}checked{% endif %}> Artikel ini adalah resep produksi</label>
+                <div class="recipe-fields">
+                    <label>Hasil produksi</label>
+                    <div class="two-columns"><input type="number" step="0.01" name="hasil_jumlah" value="{{ recipe.hasil_jumlah or '' }}" placeholder="Jumlah"><input name="hasil_satuan" value="{{ recipe.hasil_satuan or '' }}" placeholder="Satuan"></div>
+                    <label>Suhu oven (°C)</label><input type="number" name="suhu_oven_celsius" value="{{ recipe.suhu_oven_celsius or '' }}">
+                    <label>Durasi pemanggangan (menit)</label><input type="number" name="durasi_menit" value="{{ recipe.durasi_menit or '' }}">
+                    <label>Bahan</label>
+                    {% for index in range(5) %}
+                    {% set ingredient = recipe_ingredients[index] if index < recipe_ingredients|length else {} %}
+                    <div class="three-columns"><input name="bahan_nama" value="{{ ingredient.nama_bahan or '' }}" placeholder="Nama bahan"><input type="number" step="0.01" name="bahan_jumlah" value="{{ ingredient.jumlah or '' }}" placeholder="Jumlah"><input name="bahan_satuan" value="{{ ingredient.satuan or '' }}" placeholder="Satuan"></div>
+                    {% endfor %}
+                    <label>Peralatan</label><textarea name="peralatan" rows="2">{{ recipe.peralatan or '' }}</textarea>
+                    <label>Penyimpanan</label><textarea name="penyimpanan" rows="2">{{ recipe.penyimpanan or '' }}</textarea>
+                    <label>Informasi alergen</label><input name="informasi_alergen" value="{{ recipe.informasi_alergen or '' }}" placeholder="Contoh: telur, susu, gluten">
+                </div>
+            </section>
+            <label>Tag</label>
+            <div class="tag-options">
+                {% for tag in tags %}
+                <label><input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in selected_tags %}checked{% endif %}> {{ tag.nama }}</label>
+                {% endfor %}
+            </div>
+            <section class="attachment-box">
+                <h2>Lampiran Artikel</h2>
+                <p>Tambahkan foto produk, video tutorial, atau dokumen pendukung.</p>
+                <input type="file" name="attachments" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
+                <small>Format gambar, video, PDF, Office, atau TXT. Maksimal 25 MB per file.</small>
+                {% if article and article.attachments %}
+                <div class="attachment-list">
+                    <strong>Lampiran saat ini:</strong>
+                    {% for attachment in article.attachments %}
+                    <span class="attachment-chip">{{ attachment.nama_file }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+            <button type="submit">Simpan Draft</button>
+            <a class="button-link button-secondary" href="{{ url_for('knowledge_index') }}">Batal</a>
+        </form>
+    </div>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

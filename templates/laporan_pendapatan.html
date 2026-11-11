@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pendapatan Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Pendapatan Cabang</h2>
+    <div>
+        <a href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">Dashboard</a> |
+        {% include 'partials/topbar_knowledge.html' %} |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions">
+    <a class="button-link button-secondary" href="{{ url_for('admin') if user.role == 'admin' else url_for('manajer') }}">{{ icon('arrow-left') }} Kembali ke Dashboard</a>
+</div>
+{% if user.role == 'manajer_cabang' %}
+    <h1>Pilih Transaksi untuk Direkap</h1>
+    <p>Centang transaksi yang tidak berhasil atau dibatalkan. Transaksi yang tidak dicentang akan dihitung sebagai pendapatan.</p>
+
+    {% if transaksi %}
+    <form method="POST" action="{{ url_for('simpan_rekap_transaksi_route') }}">
+        <button type="button" onclick="selectAllTransactions()">Select All</button>
+        <button type="submit">Rekap</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pilih</th>
+                    <th>ID</th>
+                    <th>Tanggal</th>
+                    <th>Pelanggan</th>
+                    <th>Total</th>
+                    <th>Status Transaksi</th>
+                    <th>Tidak Berhasil / Dibatalkan</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in transaksi %}
+            <tr>
+                <td><input class="transaction-select" type="checkbox" name="selected_ids" value="{{ item.transaksi_id }}"></td>
+                <td>#{{ item.transaksi_id }}</td>
+                <td>{{ item.tanggal }}</td>
+                <td>{{ item.pelanggan }}</td>
+                <td>Rp {{ "{:,.0f}".format(item.total_harga) }}</td>
+                <td>{{ item.status }}</td>
+                <td><input type="checkbox" name="dibatalkan_ids" value="{{ item.transaksi_id }}" checked></td>
+                <td><input name="catatan_{{ item.transaksi_id }}"></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </form>
+    {% else %}
+        <p>Semua transaksi cabang sudah direkap.</p>
+    {% endif %}
+{% else %}
+    <h1>Pendapatan per Hari dan Cabang</h1>
+    <table>
+        <thead><tr><th>Tanggal</th><th>Cabang</th><th>Jumlah Transaksi</th><th>Pendapatan</th><th>Detail</th></tr></thead>
+        <tbody>
+        {% for item in laporan %}
+        <tr>
+            <td>{{ item.tanggal }}</td>
+            <td>{{ item.cabang }}</td>
+            <td>{{ item.jumlah_transaksi }}</td>
+            <td>Rp {{ "{:,.0f}".format(item.pendapatan) }}</td>
+            <td><a href="{{ url_for('detail_laporan_pendapatan', cabang_id=item.cabang_id, tanggal=item.tanggal) }}">Lihat Transaksi</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Belum ada data pendapatan yang direkap.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+</div>
+
+<script>
+function selectAllTransactions() {
+    document.querySelectorAll('.transaction-select').forEach(function (checkbox) {
+        checkbox.checked = true;
+    });
+}
+</script>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

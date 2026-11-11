@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kasir - Sistem Transaksi</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+{% from 'partials/icon.html' import icon %}
+
+<nav>
+
+    <h2>Kasir Toko Kue</h2>
+
+    <div>
+        Halo, {{ user.nama }}
+        <span class="topbar-divider">|</span>
+        {% include 'partials/topbar_knowledge.html' %}
+        <span class="topbar-divider">|</span>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+{% include 'partials/top_module_nav.html' %}
+
+
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <main class="dashboard-content">
+    <div class="container">
+
+    <div class="dashboard-hero">
+        <div>
+            <span class="eyebrow">TRANSACTION PROCESSING SYSTEM</span>
+            <h1>Dashboard Kasir</h1>
+            <p>Kelola pesanan pelanggan dan status transaksi cabang.</p>
+        </div>
+        <div class="hero-icon">{{ icon('receipt') }}</div>
+    </div>
+
+
+    <div class="kasir-menu">
+
+        <div class="menu-card">
+
+            <h2>{{ icon('clipboard') }}</h2>
+
+            <h3>
+                Semua Pesanan
+            </h3>
+
+            <p>
+                {{ transaksi|length }}
+                transaksi
+            </p>
+
+        </div>
+
+
+        <div class="menu-card">
+
+            <h2>{{ icon('clock') }}</h2>
+
+            <h3>
+                Diproses
+            </h3>
+
+            <p>
+
+                {% set jumlah_diproses = namespace(value=0) %}
+
+                {% for item in transaksi %}
+
+                    {% if item.status == "diproses" %}
+                        {% set jumlah_diproses.value =
+                            jumlah_diproses.value + 1 %}
+                    {% endif %}
+
+                {% endfor %}
+
+                {{ jumlah_diproses.value }}
+                pesanan
+
+            </p>
+
+        </div>
+
+
+        <div class="menu-card">
+
+            <h2>{{ icon('truck') }}</h2>
+
+            <h3>
+                Dikirim
+            </h3>
+
+            <p>
+
+                {% set jumlah_dikirim = namespace(value=0) %}
+
+                {% for item in transaksi %}
+
+                    {% if item.status == "dikirim" %}
+                        {% set jumlah_dikirim.value =
+                            jumlah_dikirim.value + 1 %}
+                    {% endif %}
+
+                {% endfor %}
+
+                {{ jumlah_dikirim.value }}
+                pesanan
+
+            </p>
+
+        </div>
+
+
+        <div class="menu-card">
+
+            <h2>{{ icon('check') }}</h2>
+
+            <h3>
+                Selesai
+            </h3>
+
+            <p>
+
+                {% set jumlah_selesai = namespace(value=0) %}
+
+                {% for item in transaksi %}
+
+                    {% if item.status == "selesai" %}
+                        {% set jumlah_selesai.value =
+                            jumlah_selesai.value + 1 %}
+                    {% endif %}
+
+                {% endfor %}
+
+                {{ jumlah_selesai.value }}
+                pesanan
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <h2 class="section-title">
+        Daftar Pesanan
+    </h2>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Pelanggan</th>
+                <th>Cabang</th>
+
+                <th>Tanggal</th>
+
+                <th>Total</th>
+
+                <th>Pembayaran</th>
+
+                <th>Status</th>
+
+                <th>Aksi</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+        {% for item in transaksi %}
+
+            <tr>
+
+                <td>
+                    #{{ item.transaksi_id }}
+                </td>
+
+                <td>
+                    {{ item.pelanggan }}
+                </td>
+
+                <td>{{ item.cabang or 'Belum ditentukan' }}</td>
+
+                <td>
+                    {{ item.tanggal }}
+                </td>
+
+                <td>
+                    Rp {{ "{:,.0f}".format(item.total) }}
+                </td>
+
+                <td>
+                    {{ item.metode_pembayaran }}
+                </td>
+
+                <td>
+
+                    <span class="status {{ item.status }}">
+                        {{ item.status }}
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <a
+                        href="{{ url_for(
+                            'kasir_detail_transaksi',
+                            transaksi_id=item.transaksi_id
+                        ) }}"
+                    >
+                        Detail
+                    </a>
+
+
+                    {% if item.status == "diproses"
+                        and not item.kasir %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'kasir_ambil_pesanan',
+                                transaksi_id=item.transaksi_id
+                            ) }}"
+                            style="display:inline;"
+                        >
+
+                            <button type="submit">
+                                Ambil Pesanan
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% else %}
+
+            <tr>
+
+                <td colspan="8">
+                    Belum ada transaksi.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    </div>
+    </main>
+</div>
+
+</body>
+</html>

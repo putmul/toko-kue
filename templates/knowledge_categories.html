@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kategori Knowledge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav><h2>Knowledge Management Toko Kue</h2><div>Halo, {{ user.nama }} <span class="topbar-divider">|</span> {% include 'partials/topbar_knowledge.html' %} <span class="topbar-divider">|</span> <a href="{{ url_for('logout') }}">Logout</a></div></nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('knowledge_index') }}">{{ icon('arrow-left') }} Kembali ke Knowledge</a></div>
+    <div class="card">
+        <h1>Tambah Kategori</h1>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="POST">
+            <label>Nama kategori</label><input name="nama" required>
+            <label>Deskripsi</label><textarea name="deskripsi" rows="3"></textarea>
+            <button type="submit">Simpan Kategori</button>
+        </form>
+    </div>
+    <h2 class="section-title">Daftar Kategori</h2>
+    <table><thead><tr><th>Nama</th><th>Deskripsi</th></tr></thead><tbody>
+        {% for category in categories %}<tr><td>{{ category.nama }}</td><td>{{ category.deskripsi or '-' }}</td></tr>{% endfor %}
+    </tbody></table>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

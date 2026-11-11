@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Supplier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('supplier') }}">{{ icon('arrow-left') }} Kembali ke Supplier</a></div>
+    <div class="card">
+        <h1>Tambah Supplier</h1>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="POST">
+            <label>Nama Perusahaan</label>
+            <input name="nama_perusahaan" required>
+            <label>Nama Kontak</label>
+            <input name="nama_kontak">
+            <label>Telepon</label>
+            <input name="telepon">
+            <label>Email</label>
+            <input type="email" name="email">
+            <label>Alamat</label>
+            <textarea name="alamat"></textarea>
+            <button type="submit">Simpan</button>
+        </form>
+    </div>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

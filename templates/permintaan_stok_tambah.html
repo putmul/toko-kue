@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buat Request Stok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_permintaan_stok') }}">{{ icon('arrow-left') }} Kembali ke Request Stok</a></div>
+<div class="card">
+    <h1>Buat Request Stok</h1>
+    <p>Cabang otomatis: {{ employee.cabang }}</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Produk</label>
+        <select name="produk_id" required>
+            <option value="">Pilih produk</option>
+            {% for item in produk %}
+            <option value="{{ item.id }}">{{ item.nama }} (stok gudang: {{ item.stok }})</option>
+            {% endfor %}
+        </select>
+        <label>Jumlah</label>
+        <input type="number" name="jumlah" min="1" required>
+        <label>Catatan</label>
+        <textarea name="catatan"></textarea>
+        <button type="submit">Kirim Request</button>
+    </form>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

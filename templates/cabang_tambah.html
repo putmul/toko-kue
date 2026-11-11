@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Cabang</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+<div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_cabang') }}">{{ icon('arrow-left') }} Kembali ke Cabang</a></div>
+<div class="card">
+    <h1>Tambah Cabang</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <label>Nama Cabang</label><input name="nama" required>
+        <label>Alamat</label><textarea name="alamat" required></textarea>
+        <label>Telepon</label><input name="telepon">
+        <button type="submit">Simpan</button>
+    </form>
+</div></div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>
