@@ -1,7 +1,8 @@
 from model.database import get_connection
+from service.inventory import ensure_non_negative, record_mutation
 
 
-def tambah_produk(nama, harga, stok):
+def tambah_produk(nama, harga, stok, user_id=None):
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -29,19 +30,35 @@ def tambah_produk(nama, harga, stok):
         connection.close()
 
 
-def update_stok(produk_id, stok_baru):
+def update_stok(produk_id, stok_baru, user_id=None, alasan=None):
     connection = get_connection()
     cursor = connection.cursor()
 
     try:
+        ensure_non_negative(stok_baru)
+        cursor.execute("""
+            SELECT stok
+            FROM produk
+            WHERE id = %s
+            FOR UPDATE
+        """, (produk_id,))
+        produk = cursor.fetchone()
+
+        if not produk:
+            return False
+
+        stok_lama = produk[0]
         cursor.execute("""
             UPDATE produk
             SET stok = %s
             WHERE id = %s
         """, (stok_baru, produk_id))
 
-        if cursor.rowcount == 0:
-            return False
+        if stok_lama != stok_baru:
+            record_mutation(
+                cursor, produk_id, None, "penyesuaian", None,
+                stok_baru - stok_lama, stok_lama, stok_baru, user_id, alasan
+            )
 
         connection.commit()
 
@@ -74,6 +91,12 @@ def update_produk(produk_id, nama, harga):
             cursor.execute("SELECT id FROM produk WHERE id = %s", (produk_id,))
             if not cursor.fetchone():
                 return False
+
+        if stok:
+            record_mutation(
+                cursor, cursor.lastrowid, None, "penyesuaian", cursor.lastrowid,
+                stok, 0, stok, user_id, "Stok awal produk"
+            )
 
         connection.commit()
         return True
@@ -176,6 +199,11 @@ def distribusikan_stok(produk_id, cabang_id, jumlah):
             WHERE id = %s
         """, (jumlah, produk_id))
 
+        record_mutation(
+            cursor, produk_id, cabang_id, "distribusi_keluar", None,
+            jumlah, produk["stok"], produk["stok"] - jumlah
+        )
+
         cursor.execute("""
             INSERT INTO stok_cabang (cabang_id, produk_id, stok)
             VALUES (%s, %s, %s)
@@ -229,6 +257,10 @@ def distribusikan_stok_bulk(distributions):
                 SET stok = stok - %s
                 WHERE id = %s
             """, (jumlah, produk_id))
+            record_mutation(
+                cursor, produk_id, cabang_id, "distribusi_keluar", None,
+                jumlah, produk["stok"], produk["stok"] - jumlah
+            )
             cursor.execute("""
                 INSERT INTO stok_cabang (cabang_id, produk_id, stok)
                 VALUES (%s, %s, %s)

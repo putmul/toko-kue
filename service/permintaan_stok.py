@@ -88,8 +88,8 @@ def buat_permintaan_stok(employee_id, cabang_id, produk_id, jumlah, catatan):
 
 
 def update_status_permintaan_stok(permintaan_id, status_baru):
-    if status_baru not in ("selesai", "dibatalkan"):
-        return False, "Status request tidak valid."
+    if status_baru != "dibatalkan":
+        return False, "Request selesai melalui penerimaan distribusi."
 
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
@@ -107,41 +107,6 @@ def update_status_permintaan_stok(permintaan_id, status_baru):
             return False, "Request stok tidak ditemukan."
         if request_data["status"] != "diproses":
             return False, "Request stok sudah diproses sebelumnya."
-
-        cursor.execute("""
-            SELECT produk_id, jumlah
-            FROM detail_permintaan_stok
-            WHERE permintaan_id = %s
-        """, (permintaan_id,))
-        details = cursor.fetchall()
-
-        if status_baru == "selesai":
-            for detail in details:
-                cursor.execute("""
-                    SELECT stok
-                    FROM produk
-                    WHERE id = %s
-                    FOR UPDATE
-                """, (detail["produk_id"],))
-                produk = cursor.fetchone()
-                if not produk or produk["stok"] < detail["jumlah"]:
-                    return False, "Stok gudang tidak mencukupi."
-
-            for detail in details:
-                cursor.execute("""
-                    UPDATE produk
-                    SET stok = stok - %s
-                    WHERE id = %s
-                """, (detail["jumlah"], detail["produk_id"]))
-                cursor.execute("""
-                    INSERT INTO stok_cabang (cabang_id, produk_id, stok)
-                    VALUES (%s, %s, %s)
-                    ON DUPLICATE KEY UPDATE stok = stok + VALUES(stok)
-                """, (
-                    request_data["cabang_id"],
-                    detail["produk_id"],
-                    detail["jumlah"]
-                ))
 
         cursor.execute("""
             UPDATE permintaan_stok

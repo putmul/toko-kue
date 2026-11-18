@@ -51,7 +51,14 @@
                 <td>{{ item.pelanggan }}</td>
                 <td>Rp {{ "{:,.0f}".format(item.total_harga) }}</td>
                 <td>{{ item.status }}</td>
-                <td><input type="checkbox" name="dibatalkan_ids" value="{{ item.transaksi_id }}" checked></td>
+                    <td>
+                        {% if item.status == 'dibatalkan' %}
+                        <input type="hidden" name="dibatalkan_ids" value="{{ item.transaksi_id }}">
+                        <input type="checkbox" checked disabled>
+                        {% else %}
+                        <input type="checkbox" disabled>
+                        {% endif %}
+                    </td>
                 <td><input name="catatan_{{ item.transaksi_id }}"></td>
             </tr>
             {% endfor %}

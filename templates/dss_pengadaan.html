@@ -136,7 +136,9 @@
                         <td>Rp {{ "{:,.0f}".format(item.total_biaya) }}</td>
                         <td>
                             {% if loop.first %}
-                            <a class="button-link button-success" href="{{ url_for('dss_use_recommendation', recommendation_id=result.recommendation_id) }}">Gunakan</a>
+                            <form method="POST" action="{{ url_for('dss_use_recommendation', recommendation_id=result.recommendation_id) }}" style="display:inline;">
+                                <button class="button-link button-success" type="submit">Gunakan</button>
+                            </form>
                             {% else %}-{% endif %}
                         </td>
                     </tr>

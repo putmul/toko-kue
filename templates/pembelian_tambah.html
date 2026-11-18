@@ -14,6 +14,7 @@
         <div class="page-actions"><a class="button-link button-secondary" href="{{ url_for('daftar_pembelian') }}">{{ icon('arrow-left') }} Kembali</a></div>
         {% if error %}<p class="error">{{ error }}</p>{% endif %}
         <form method="POST">
+            {% if recommendation_id %}<input type="hidden" name="recommendation_id" value="{{ recommendation_id }}">{% endif %}
             <label>Supplier</label>
             <select name="supplier_id" required onchange="this.form.submit()">
                 <option value="">Pilih supplier</option>

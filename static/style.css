@@ -139,6 +139,25 @@ nav a:hover { color: white; }
 .dss-weight-total .dss-total-valid { color: var(--primary-dark); }
 .dss-settings-table code { color: var(--muted); font-size: .8rem; }
 
+/* Customer cake expert system */
+.customer-expert-page { width: min(92%, 1180px); max-width: none; }
+.customer-expert-page .page-heading { margin-bottom: 20px; }
+.customer-expert-page .page-heading > .ui-icon { width: 42px; height: 42px; padding: 10px; border-radius: 14px; background: var(--teal-soft); color: var(--primary-dark); }
+.customer-expert-card { width: 100%; max-width: none; margin: 0; padding: clamp(24px, 4vw, 38px); }
+.customer-expert-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; row-gap: 2px; }
+.customer-expert-form > button { grid-column: 1 / -1; justify-self: start; }
+.customer-expert-form fieldset { min-width: 0; }
+.customer-expert-options { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 17px 0 7px; padding: 14px 16px 10px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-soft); }
+.customer-expert-options legend { padding: 0 7px; color: var(--ink); font-size: .88rem; font-weight: 700; }
+.customer-expert-options label { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 500; }
+.customer-expert-results { margin-top: 30px; }
+.customer-expert-results .page-heading { margin-bottom: 15px; }
+.customer-expert-results .page-heading h2 { margin-bottom: 0; }
+.customer-expert-results .product-card { height: 100%; display: flex; flex-direction: column; }
+.customer-expert-results .product-card details { margin-top: 12px; color: var(--muted); font-size: .86rem; }
+.customer-expert-results .product-card form { margin-top: auto; }
+.customer-expert-results .product-card button { width: 100%; }
+
 /* Expert System uses the full workspace because its evaluation tables are wide. */
 .dashboard-content .expert-page {
     width: min(98%, 1700px);
@@ -700,6 +719,7 @@ td button, td .button-link { min-height: 34px; margin-top: 0; padding: 7px 11px;
     .kasir-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mis-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .customer-expert-form { column-gap: 16px; }
 }
 
 @media (max-width: 680px) {
@@ -719,6 +739,9 @@ td button, td .button-link { min-height: 34px; margin-top: 0; padding: 7px 11px;
     .sidebar.collapsed .sidebar-group-toggle b { display: inline; }
     .sidebar.collapsed .sidebar-group-items { display: grid; }
     .sidebar.collapsed .sidebar-link, .sidebar.collapsed .sidebar-sub-link, .sidebar.collapsed .sidebar-group-toggle, .sidebar.collapsed .sidebar-logout { gap: 11px; }
+    .customer-expert-form { grid-template-columns: 1fr; }
+    .customer-expert-options, .customer-expert-form > button { grid-column: auto; }
+    .customer-expert-page .page-heading > .ui-icon { display: none; }
     .sidebar-logout { margin-top: 12px; padding: 10px 12px; border-top: 0; }
     .dashboard-hero { align-items: flex-start; }
     .hero-icon { display: none; }

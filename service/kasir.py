@@ -1,4 +1,5 @@
 from model.database import get_connection
+from service.inventory import record_mutation
 
 def ambil_pesanan(transaksi_id, user_id):
     connection = get_connection()
@@ -110,6 +111,7 @@ def update_status_pesanan(transaksi_id, status_baru, employee_id=None):
             return False
 
         status_lama = transaksi["status"]
+        actor_user_id = None
 
         if employee_id is not None:
             cursor.execute("""
@@ -129,6 +131,14 @@ def update_status_pesanan(transaksi_id, status_baru, employee_id=None):
             ):
                 print("Transaksi bukan tanggung jawab kasir ini.")
                 return False
+
+            cursor.execute("""
+                SELECT user_id
+                FROM employee
+                WHERE id = %s
+            """, (employee_id,))
+            actor = cursor.fetchone()
+            actor_user_id = actor["user_id"] if actor else None
 
             if transaksi["kasir_id"] is None:
                 cursor.execute("""
@@ -197,6 +207,26 @@ def update_status_pesanan(transaksi_id, status_baru, employee_id=None):
                     detail["produk_id"],
                     detail["jumlah"]
                 ))
+                stok_sesudah = None
+                cursor.execute("""
+                    SELECT stok
+                    FROM stok_cabang
+                    WHERE cabang_id = %s AND produk_id = %s
+                """, (transaksi["cabang_id"], detail["produk_id"]))
+                row = cursor.fetchone()
+                if row:
+                    stok_sesudah = row["stok"]
+                    record_mutation(
+                        cursor,
+                        detail["produk_id"],
+                        transaksi["cabang_id"],
+                        "pembatalan",
+                        transaksi_id,
+                        detail["jumlah"],
+                        stok_sesudah - detail["jumlah"],
+                        stok_sesudah,
+                        actor_user_id,
+                    )
 
         # -------------------------------------------------
         # Update status

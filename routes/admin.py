@@ -2,10 +2,11 @@ from flask import render_template, request, redirect, url_for, session
 
 from service.produk import (
     tambah_produk, update_stok, get_semua_produk, update_produk,
-    hapus_produk, get_stok_produk_per_cabang, distribusikan_stok_bulk
+    hapus_produk, get_stok_produk_per_cabang
 )
 from service.riwayat_transaksi import lihat_detail_transaksi, lihat_semua_transaksi
 from service.employee import get_employee_for_user
+from service.customer_expert import get_product_profiles, save_product_profile
 
 
 def register(app):
@@ -25,6 +26,42 @@ def register(app):
         return render_template(
             "admin.html",
             user=session["user"]
+        )
+
+    @app.route("/admin/profil-kue", methods=["GET", "POST"])
+    def admin_customer_expert_profiles():
+        if "user" not in session or session["user"]["role"] != "admin":
+            return "Akses ditolak", 403
+
+        error = None
+        success = None
+        if request.method == "POST":
+            profile_data = {
+                "intensitas_coklat": request.form.get("intensitas_coklat"),
+                "tingkat_kemanisan": request.form.get("tingkat_kemanisan"),
+                "tingkat_kepahitan": request.form.get("tingkat_kepahitan"),
+                "tekstur": request.form.get("tekstur"),
+                "kategori": request.form.get("kategori"),
+                "mengandung_susu": request.form.get("mengandung_susu") == "1",
+                "mengandung_telur": request.form.get("mengandung_telur") == "1",
+                "mengandung_kacang": request.form.get("mengandung_kacang") == "1",
+                "mengandung_gluten": request.form.get("mengandung_gluten") == "1",
+                "diperbarui_oleh": session["user"]["id"],
+            }
+            berhasil, pesan = save_product_profile(
+                request.form.get("produk_id"), profile_data
+            )
+            if berhasil:
+                success = pesan
+            else:
+                error = pesan
+
+        return render_template(
+            "admin_customer_expert_profiles.html",
+            profiles=get_product_profiles(),
+            error=error,
+            success=success,
+            user=session["user"],
         )
 
     @app.route("/admin/produk")
@@ -58,41 +95,6 @@ def register(app):
             return "Akses ditolak", 403
 
         return "Distribusi stok harus dibuat dari permintaan stok cabang.", 410
-
-        distributions = []
-        for field, value in request.form.items():
-            if not field.startswith("jumlah_") or not value.strip():
-                continue
-            try:
-                _, produk_id, cabang_id = field.split("_")
-                jumlah = int(value)
-                distributions.append((int(produk_id), int(cabang_id), jumlah))
-            except (ValueError, TypeError):
-                return render_template(
-                    "admin_produk.html",
-                    produk=get_stok_produk_per_cabang(),
-                    error="Data distribusi stok tidak valid.",
-                    user=session["user"]
-                )
-
-        if not distributions:
-            return render_template(
-                "admin_produk.html",
-                produk=get_stok_produk_per_cabang(),
-                error="Masukkan minimal satu jumlah distribusi.",
-                user=session["user"]
-            )
-
-        berhasil, pesan = distribusikan_stok_bulk(distributions)
-        if not berhasil:
-            return render_template(
-                "admin_produk.html",
-                produk=get_stok_produk_per_cabang(),
-                error=pesan,
-                user=session["user"]
-            )
-
-        return redirect(url_for("admin_produk"))
 
 
     @app.route("/admin/produk/<int:produk_id>/edit", methods=["GET", "POST"])
@@ -202,7 +204,8 @@ def register(app):
             berhasil = tambah_produk(
                 nama,
                 harga,
-                stok
+                stok,
+                session["user"]["id"]
             )
 
             if berhasil:
@@ -233,6 +236,7 @@ def register(app):
             try:
                 produk_id = int(request.form["produk_id"])
                 stok_baru = int(request.form["stok"])
+                alasan = request.form.get("alasan", "").strip()
             except ValueError:
                 return render_template(
                     "admin_stok.html",
@@ -249,9 +253,19 @@ def register(app):
                     user=session["user"]
                 )
 
+            if not alasan:
+                return render_template(
+                    "admin_stok.html",
+                    produk=get_semua_produk(),
+                    error="Alasan penyesuaian stok wajib diisi.",
+                    user=session["user"]
+                )
+
             berhasil = update_stok(
                 produk_id,
-                stok_baru
+                stok_baru,
+                session["user"]["id"],
+                alasan
             )
 
             if berhasil:
@@ -276,7 +290,7 @@ def register(app):
         if "user" not in session:
             return redirect(url_for("login"))
 
-        if session["user"]["role"] != "manajer_cabang":
+        if session["user"]["role"] not in ("admin", "manajer_cabang"):
             return "Akses ditolak", 403
 
         cabang_id = None
@@ -300,7 +314,7 @@ def register(app):
         if "user" not in session:
             return redirect(url_for("login"))
 
-        if session["user"]["role"] != "manajer_cabang":
+        if session["user"]["role"] not in ("admin", "manajer_cabang"):
             return "Akses ditolak", 403
 
         cabang_id = None

@@ -268,7 +268,7 @@ def get_recommendation_for_purchase(recommendation_id):
     cursor = connection.cursor(dictionary=True)
     try:
         cursor.execute("""
-            SELECT r.id, r.produk_id, r.supplier_terpilih_id,
+            SELECT r.id, r.produk_id, r.supplier_terpilih_id, r.status,
                    r.jumlah_pembelian, p.nama AS produk,
                    s.nama_perusahaan AS supplier
             FROM dss_rekomendasi_pengadaan r

@@ -88,14 +88,17 @@ def register(app):
             return jsonify(error="Akses ditolak."), 403
         return jsonify(get_supplier_alternatives(produk_id))
 
-    @app.route("/dss/pengadaan/<int:recommendation_id>/gunakan")
+    @app.route("/dss/pengadaan/<int:recommendation_id>/gunakan", methods=["POST"])
     def dss_use_recommendation(recommendation_id):
         if not _is_admin():
             return "Akses ditolak", 403
         recommendation = get_recommendation_for_purchase(recommendation_id)
         if not recommendation:
             return "Rekomendasi tidak ditemukan.", 404
+        if recommendation["status"] != "draft":
+            return "Rekomendasi sudah digunakan.", 400
         session["dss_prefill"] = {
+            "recommendation_id": recommendation_id,
             "supplier_id": recommendation["supplier_terpilih_id"],
             "produk_id": recommendation["produk_id"],
             "jumlah": recommendation["jumlah_pembelian"],

@@ -1,4 +1,5 @@
 from model.database import get_connection
+from service.inventory import record_mutation
 
 
 def get_semua_distribusi(cabang_id=None):
@@ -57,9 +58,11 @@ def buat_distribusi_stok(employee_id, cabang_id, items, permintaan_id=None, cata
     cursor = connection.cursor(dictionary=True)
     try:
         cursor.execute("""
-            SELECT id FROM employee WHERE id = %s AND status = 'aktif'
+            SELECT id, user_id FROM employee
+            WHERE id = %s AND status = 'aktif' AND jabatan = 'admin'
         """, (employee_id,))
-        if not cursor.fetchone():
+        employee = cursor.fetchone()
+        if not employee:
             raise ValueError("Employee tidak aktif.")
         cursor.execute("""
             SELECT id FROM cabang WHERE id = %s AND status = 'aktif'
@@ -67,17 +70,71 @@ def buat_distribusi_stok(employee_id, cabang_id, items, permintaan_id=None, cata
         if not cursor.fetchone():
             raise ValueError("Cabang tidak aktif.")
 
+        request_data = None
+        if permintaan_id is not None:
+            cursor.execute("""
+                SELECT id, cabang_id, status
+                FROM permintaan_stok
+                WHERE id = %s
+                FOR UPDATE
+            """, (permintaan_id,))
+            request_data = cursor.fetchone()
+            if not request_data:
+                raise ValueError("Permintaan stok tidak ditemukan.")
+            if request_data["cabang_id"] != cabang_id:
+                raise ValueError("Cabang distribusi tidak sesuai dengan request.")
+            if request_data["status"] != "diproses":
+                raise ValueError("Request stok sudah tidak dapat didistribusikan.")
+
         cursor.execute("""
             INSERT INTO distribusi_stok
                 (permintaan_id, employee_id, cabang_id, catatan)
             VALUES (%s, %s, %s, %s)
         """, (permintaan_id, employee_id, cabang_id, catatan))
         distribution_id = cursor.lastrowid
+        requested = {}
+        if request_data:
+            cursor.execute("""
+                SELECT produk_id, jumlah
+                FROM detail_permintaan_stok
+                WHERE permintaan_id = %s
+            """, (permintaan_id,))
+            requested = {
+                row["produk_id"]: row["jumlah"]
+                for row in cursor.fetchall()
+            }
+
+        normalized = {}
         for item in items:
             product_id = int(item["produk_id"])
             quantity = int(item["jumlah"])
             if quantity <= 0:
-                raise ValueError("Jumlah distribusi harus lebih dari 0.")
+                continue
+            normalized[product_id] = normalized.get(product_id, 0) + quantity
+
+        if not normalized:
+            raise ValueError("Minimal satu jumlah distribusi harus lebih dari 0.")
+
+        for product_id, quantity in normalized.items():
+            if requested and product_id not in requested:
+                raise ValueError("Produk distribusi tidak ada dalam request.")
+            if requested:
+                cursor.execute("""
+                    SELECT COALESCE(SUM(dds.jumlah), 0) AS sudah_dibuat
+                    FROM distribusi_stok ds
+                    JOIN detail_distribusi_stok dds
+                        ON dds.distribusi_id = ds.id
+                    WHERE ds.permintaan_id = %s
+                      AND ds.status <> 'dibatalkan'
+                      AND dds.produk_id = %s
+                """, (permintaan_id, product_id))
+                already_created = cursor.fetchone()["sudah_dibuat"]
+                remaining = requested[product_id] - already_created
+                if quantity > remaining:
+                    raise ValueError(
+                        f"Distribusi produk {product_id} melebihi sisa request "
+                        f"({remaining} unit)."
+                    )
             cursor.execute("""
                 INSERT INTO detail_distribusi_stok
                     (distribusi_id, produk_id, jumlah)
@@ -106,44 +163,90 @@ def update_status_distribusi(distribusi_id, status_baru, user_id=None):
         distribution = cursor.fetchone()
         if not distribution:
             return False, "Distribusi tidak ditemukan."
-        if distribution["status"] != "diproses":
-            return False, "Distribusi sudah diproses sebelumnya."
+        allowed_next = {
+            "diproses": ("dikirim", "dibatalkan"),
+            "dikirim": ("diterima",),
+        }
+        if status_baru not in allowed_next.get(distribution["status"], ()):
+            return False, "Perubahan status distribusi tidak valid."
 
         cursor.execute("""
             SELECT produk_id, jumlah FROM detail_distribusi_stok
             WHERE distribusi_id = %s
         """, (distribusi_id,))
         details = cursor.fetchall()
-        if status_baru in ("dikirim", "diterima"):
+        if status_baru == "dikirim":
+            for detail in details:
+                cursor.execute("""
+                    SELECT stok
+                    FROM produk
+                    WHERE id = %s
+                    FOR UPDATE
+                """, (detail["produk_id"],))
+                product = cursor.fetchone()
+                if not product or product["stok"] < detail["jumlah"]:
+                    return False, "Stok gudang tidak mencukupi untuk dikirim."
+
             for detail in details:
                 cursor.execute("""
                     SELECT stok FROM produk WHERE id = %s FOR UPDATE
                 """, (detail["produk_id"],))
-                product = cursor.fetchone()
-                if product["stok"] < detail["jumlah"]:
-                    return False, "Stok gudang tidak mencukupi."
-
-            for detail in details:
-                cursor.execute("SELECT stok FROM produk WHERE id = %s", (detail["produk_id"],))
                 before = cursor.fetchone()["stok"]
                 after = before - detail["jumlah"]
-                cursor.execute("UPDATE produk SET stok = %s WHERE id = %s", (after, detail["produk_id"]))
+                cursor.execute(
+                    "UPDATE produk SET stok = %s WHERE id = %s",
+                    (after, detail["produk_id"])
+                )
+                record_mutation(
+                    cursor, detail["produk_id"], distribution["cabang_id"],
+                    "distribusi_keluar", distribusi_id, detail["jumlah"],
+                    before, after, user_id
+                )
+
+        if status_baru == "diterima":
+            for detail in details:
                 cursor.execute("""
                     INSERT INTO stok_cabang (cabang_id, produk_id, stok)
                     VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE stok = stok + VALUES(stok)
                 """, (distribution["cabang_id"], detail["produk_id"], detail["jumlah"]))
                 cursor.execute("""
-                    INSERT INTO stok_mutasi
-                        (produk_id, cabang_id, tipe, referensi_id, jumlah,
-                         stok_sebelum, stok_sesudah, dibuat_oleh)
-                    VALUES (%s, %s, 'distribusi_keluar', %s, %s, %s, %s, %s)
-                """, (detail["produk_id"], distribution["cabang_id"], distribusi_id,
-                      detail["jumlah"], before, after, user_id))
+                    SELECT stok
+                    FROM stok_cabang
+                    WHERE cabang_id = %s AND produk_id = %s
+                """, (distribution["cabang_id"], detail["produk_id"]))
+                branch_after = cursor.fetchone()["stok"]
+                record_mutation(
+                    cursor, detail["produk_id"], distribution["cabang_id"],
+                    "distribusi_masuk", distribusi_id, detail["jumlah"],
+                    branch_after - detail["jumlah"], branch_after, user_id
+                )
 
         cursor.execute("UPDATE distribusi_stok SET status = %s WHERE id = %s", (status_baru, distribusi_id))
-        if distribution["permintaan_id"] and status_baru in ("dikirim", "diterima"):
-            cursor.execute("UPDATE permintaan_stok SET status = 'selesai' WHERE id = %s", (distribution["permintaan_id"],))
+        if distribution["permintaan_id"] and status_baru == "diterima":
+            cursor.execute("""
+                SELECT dps.produk_id, dps.jumlah AS diminta,
+                       COALESCE((
+                           SELECT SUM(dds.jumlah)
+                           FROM distribusi_stok ds2
+                           JOIN detail_distribusi_stok dds
+                               ON dds.distribusi_id = ds2.id
+                           WHERE ds2.permintaan_id = %s
+                             AND ds2.status = 'diterima'
+                             AND dds.produk_id = dps.produk_id
+                       ), 0) AS diterima
+                FROM detail_permintaan_stok dps
+                WHERE dps.permintaan_id = %s
+            """, (distribution["permintaan_id"], distribution["permintaan_id"]))
+            request_lines = cursor.fetchall()
+            if request_lines and all(
+                line["diterima"] >= line["diminta"]
+                for line in request_lines
+            ):
+                cursor.execute(
+                    "UPDATE permintaan_stok SET status = 'selesai' WHERE id = %s",
+                    (distribution["permintaan_id"],)
+                )
         connection.commit()
         return True, "Status distribusi berhasil diperbarui."
     except Exception as error:

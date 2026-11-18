@@ -622,6 +622,10 @@ def register(app):
             supplier_id = None
         supplier_products = get_supplier_produk(supplier_id)
         prefill_quantities = {}
+        recommendation_id = (
+            recommendation_prefill.get("recommendation_id")
+            if recommendation_prefill else request.form.get("recommendation_id")
+        )
         if recommendation_prefill:
             prefill_quantities[recommendation_prefill["produk_id"]] = recommendation_prefill["jumlah"]
         error = None
@@ -645,6 +649,7 @@ def register(app):
                     employee["id"],
                     items,
                     catatan=request.form.get("catatan", "").strip() or None,
+                    recommendation_id=int(recommendation_id) if recommendation_id else None,
                 )
                 if purchase_id:
                     return redirect(url_for("daftar_pembelian"))
@@ -658,6 +663,7 @@ def register(app):
             supplier_products=supplier_products,
             selected_supplier_id=supplier_id,
             prefill_quantities=prefill_quantities,
+            recommendation_id=recommendation_id,
             error=error,
             user=session["user"]
         )
@@ -725,9 +731,25 @@ def register(app):
 
     @app.route("/distribusi-stok/<int:distribusi_id>/status", methods=["POST"])
     def admin_update_status_distribusi(distribusi_id):
-        if "user" not in session or session["user"]["role"] != "admin":
+        if "user" not in session or session["user"]["role"] not in (
+            "admin", "manajer_cabang"
+        ):
             return "Akses ditolak", 403
         status = request.form.get("status")
+        if session["user"]["role"] == "manajer_cabang" and status != "diterima":
+            return "Manager hanya dapat menerima distribusi cabangnya.", 403
+        if session["user"]["role"] == "admin" and status == "diterima":
+            return "Penerimaan distribusi dilakukan oleh manager cabang.", 403
+        employee = get_employee_for_user(session["user"]["id"])
+        if not employee:
+            return "Akun employee aktif tidak ditemukan.", 403
+        if session["user"]["role"] == "manajer_cabang":
+            distribution_detail = get_distribusi_detail(distribusi_id)
+            if (
+                not distribution_detail
+                or distribution_detail[0]["cabang_id"] != employee["cabang_id"]
+            ):
+                return "Distribusi bukan milik cabang Anda.", 403
         berhasil, pesan = update_status_distribusi(
             distribusi_id, status, session["user"]["id"]
         )

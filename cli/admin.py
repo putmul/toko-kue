@@ -3,7 +3,7 @@ from service.transaksi import lihat_semua_transaksi, update_status_pesanan
 from cli.customer import lihat_katalog, tampilkan_invoice
 
 
-def menu_tambah_produk():
+def menu_tambah_produk(user=None):
 
         print("\n================================")
         print("          TAMBAH KUE")
@@ -39,7 +39,8 @@ def menu_tambah_produk():
         berhasil = tambah_produk(
             nama,
             harga,
-            stok
+            stok,
+            user["id"] if user else None
         )
 
         if berhasil:
@@ -47,7 +48,7 @@ def menu_tambah_produk():
         else:
             print("\nGagal menambahkan kue.")
 
-def menu_update_stok():
+def menu_update_stok(user=None):
 
         lihat_katalog()
 
@@ -64,6 +65,7 @@ def menu_update_stok():
             stok_baru = int(
                 input("Stok baru    : ")
             )
+            alasan = input("Alasan       : ").strip()
 
         except ValueError:
 
@@ -75,9 +77,15 @@ def menu_update_stok():
             print("Stok tidak boleh negatif.")
             return
 
+        if not alasan:
+            print("Alasan penyesuaian wajib diisi.")
+            return
+
         berhasil = update_stok(
             produk_id,
-            stok_baru
+            stok_baru,
+            user["id"] if user else None,
+            alasan=alasan
         )
 
         if berhasil:
@@ -173,11 +181,11 @@ def menu_admin(user):
 
         elif pilihan == "2":
 
-            menu_tambah_produk()
+            menu_tambah_produk(user)
 
         elif pilihan == "3":
 
-            menu_update_stok()
+            menu_update_stok(user)
 
         elif pilihan == "4":
 

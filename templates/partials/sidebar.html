@@ -38,6 +38,7 @@
                 <a class="sidebar-link {% if request.endpoint in ['admin_produk', 'admin_edit_produk'] %}active{% endif %}" href="{{ url_for('admin_produk') }}">{{ icon('box') }}<em>Katalog & Stok</em></a>
                 <a class="sidebar-link {% if request.endpoint == 'admin_tambah_produk' %}active{% endif %}" href="{{ url_for('admin_tambah_produk') }}">{{ icon('plus') }}<em>Tambah Kue</em></a>
                 <a class="sidebar-link {% if request.endpoint == 'admin_stok' %}active{% endif %}" href="{{ url_for('admin_stok') }}">{{ icon('refresh') }}<em>Ubah Stok</em></a>
+                <a class="sidebar-link {% if request.endpoint == 'admin_customer_expert_profiles' %}active{% endif %}" href="{{ url_for('admin_customer_expert_profiles') }}">{{ icon('check') }}<em>Profil Rasa Kue</em></a>
                 <a class="sidebar-link {% if request.endpoint in ['supplier', 'tambah_supplier_route', 'edit_supplier_route'] %}active{% endif %}" href="{{ url_for('supplier') }}">{{ icon('building') }}<em>Supplier</em></a>
                 <a class="sidebar-sub-link {% if request.endpoint == 'tambah_supplier_route' %}active{% endif %}" href="{{ url_for('tambah_supplier_route') }}">{{ icon('plus') }}<em>Tambah Supplier</em></a>
                 <a class="sidebar-link {% if request.endpoint == 'daftar_permintaan_stok' %}active{% endif %}" href="{{ url_for('daftar_permintaan_stok') }}">{{ icon('truck') }}<em>Request Stok</em></a>
@@ -81,7 +82,8 @@
         <a class="sidebar-link {% if request.endpoint == 'kasir' %}active{% endif %}" href="{{ url_for('kasir') }}">{{ icon('dashboard') }}<em>Dashboard Kasir</em></a>
         <a class="sidebar-link {% if request.endpoint in ['kasir_detail_transaksi', 'kasir_update_status', 'kasir_ambil_pesanan'] %}active{% endif %}" href="{{ url_for('kasir') }}">{{ icon('receipt') }}<em>Daftar Pesanan</em></a>
         {% elif user.role == 'pelanggan' %}
-        <a class="sidebar-link {% if request.endpoint == 'katalog' %}active{% endif %}" href="{{ url_for('katalog') }}">{{ icon('dashboard') }}<em>Katalog Kue</em></a>
+         <a class="sidebar-link {% if request.endpoint == 'katalog' %}active{% endif %}" href="{{ url_for('katalog') }}">{{ icon('dashboard') }}<em>Katalog Kue</em></a>
+         <a class="sidebar-link {% if request.endpoint == 'customer_expert' %}active{% endif %}" href="{{ url_for('customer_expert') }}">{{ icon('check') }}<em>Pembantu Pilih Kue</em></a>
         <div class="sidebar-group" data-sidebar-group="customer-purchases">
             <button class="sidebar-group-toggle" type="button">{{ icon('cart') }}<em>Pembelian</em><b>{{ icon('chevron-down') }}</b></button>
             <div class="sidebar-group-items">

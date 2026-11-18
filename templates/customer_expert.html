@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pembantu Pilih Kue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Pembantu Pilih Kue</h2>
+    <div>
+        Halo, {{ user.nama }} |
+        <a href="{{ url_for('katalog') }}">Katalog</a> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container customer-expert-page">
+    <div class="page-heading">
+        <div>
+            <span class="eyebrow">EXPERT SYSTEM CUSTOMER</span>
+            <h1>Cari Kue yang Cocok</h1>
+            <p>Sistem akan mencocokkan preferensi Anda menggunakan aturan rasa, harga, alergi, dan stok cabang.</p>
+        </div>
+        {{ icon('check') }}
+    </div>
+    {% if cart_reset %}<p class="error">Keranjang dikosongkan karena cabang pembelian berubah.</p>{% endif %}
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    <div class="card customer-expert-card">
+        <form method="POST" class="customer-expert-form">
+            <label>Cabang pembelian</label>
+            <select name="cabang_id" required>
+                <option value="">Pilih cabang</option>
+                {% for branch in branches %}
+                <option value="{{ branch.id }}" {% if form.cabang_id == branch.id %}selected{% endif %}>{{ branch.nama }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Budget maksimum</label>
+            <input type="number" name="budget" min="1" required value="{{ form.budget }}" placeholder="Contoh: 35000">
+
+            <fieldset class="customer-expert-options">
+                <legend>Rasa yang disukai</legend>
+                {% for value, label in [('coklat', 'Coklat'), ('manis', 'Manis'), ('pahit', 'Pahit')] %}
+                <label><input type="checkbox" name="rasa" value="{{ value }}" {% if value in form.tastes %}checked{% endif %}> {{ label }}</label>
+                {% endfor %}
+            </fieldset>
+
+            <label>Intensitas rasa</label>
+            <select name="intensitas">
+                {% for value, label in [('ringan', 'Ringan'), ('sedang', 'Sedang'), ('kuat', 'Kuat')] %}
+                <option value="{{ value }}" {% if form.intensity == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Tekstur</label>
+            <select name="tekstur">
+                <option value="">Bebas</option>
+                {% for value, label in [('lembut', 'Lembut'), ('renyah', 'Renyah'), ('creamy', 'Creamy')] %}
+                <option value="{{ value }}" {% if form.texture == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Jenis kue</label>
+            <select name="kategori">
+                <option value="">Bebas</option>
+                {% for value, label in [('cake', 'Cake'), ('brownies', 'Brownies'), ('donat', 'Donat'), ('cookies', 'Cookies'), ('pastry', 'Pastry'), ('lainnya', 'Lainnya')] %}
+                <option value="{{ value }}" {% if form.category == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <fieldset class="customer-expert-options">
+                <legend>Bahan yang harus dihindari</legend>
+                {% for value, label in [('susu', 'Susu'), ('telur', 'Telur'), ('kacang', 'Kacang'), ('gluten', 'Gluten')] %}
+                <label><input type="checkbox" name="alergi" value="{{ value }}" {% if value in form.allergens %}checked{% endif %}> {{ label }}</label>
+                {% endfor %}
+            </fieldset>
+
+            <button type="submit">Cari Rekomendasi</button>
+        </form>
+    </div>
+
+    {% if results %}
+    <section class="customer-expert-results">
+    <div class="page-heading">
+        <div><span class="eyebrow">HASIL INFERENCE</span><h2>Hasil Rekomendasi</h2></div>
+    </div>
+    <div class="products">
+        {% for item in results %}
+        <div class="product-card">
+            <h2>{{ item.nama }}</h2>
+            <p class="price">Rp {{ "{:,.0f}".format(item.harga) }}</p>
+            <p>Stok cabang: {{ item.stok }}</p>
+            <p><strong>Tingkat kecocokan aturan: {{ item.confidence }}%</strong></p>
+            <p><strong>Alasan:</strong> {{ item.explanation }}</p>
+            <details>
+                <summary>Aturan yang terpenuhi</summary>
+                <ul>{% for rule in item.matched_rules %}<li>{{ rule }}</li>{% endfor %}</ul>
+            </details>
+            <form method="POST" action="{{ url_for('tambah_keranjang', produk_id=item.produk_id) }}">
+                <button type="submit">{{ icon('cart') }} Tambah ke Keranjang</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    </section>
+    {% endif %}
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

@@ -267,8 +267,8 @@ ON DUPLICATE KEY UPDATE
     tingkat = VALUES(tingkat),
     judul = VALUES(judul),
     pesan = VALUES(pesan),
-    status = 'terbuka',
-    ditangani_pada = NULL;
+    status = IF(mis_monitoring_alert.status = 'ditangani', 'ditangani', 'terbuka'),
+    ditangani_pada = mis_monitoring_alert.ditangani_pada;
 
 -- 6. Alert permintaan stok yang masih diproses.
 INSERT INTO mis_monitoring_alert (
@@ -296,5 +296,5 @@ ON DUPLICATE KEY UPDATE
     tingkat = VALUES(tingkat),
     judul = VALUES(judul),
     pesan = VALUES(pesan),
-    status = 'terbuka',
-    ditangani_pada = NULL;
+    status = IF(mis_monitoring_alert.status = 'ditangani', 'ditangani', 'terbuka'),
+    ditangani_pada = mis_monitoring_alert.ditangani_pada;

@@ -173,8 +173,8 @@ def refresh_mis_data():
                 tingkat = VALUES(tingkat),
                 judul = VALUES(judul),
                 pesan = VALUES(pesan),
-                status = 'terbuka',
-                ditangani_pada = NULL
+                status = IF(mis_monitoring_alert.status = 'ditangani', 'ditangani', 'terbuka'),
+                ditangani_pada = mis_monitoring_alert.ditangani_pada
         """)
 
         cursor.execute("""
@@ -198,8 +198,8 @@ def refresh_mis_data():
                 tingkat = VALUES(tingkat),
                 judul = VALUES(judul),
                 pesan = VALUES(pesan),
-                status = 'terbuka',
-                ditangani_pada = NULL
+                status = IF(mis_monitoring_alert.status = 'ditangani', 'ditangani', 'terbuka'),
+                ditangani_pada = mis_monitoring_alert.ditangani_pada
         """)
 
         cursor.execute("""
@@ -226,8 +226,8 @@ def refresh_mis_data():
                 tingkat = VALUES(tingkat),
                 judul = VALUES(judul),
                 pesan = VALUES(pesan),
-                status = 'terbuka',
-                ditangani_pada = NULL
+                status = IF(mis_monitoring_alert.status = 'ditangani', 'ditangani', 'terbuka'),
+                ditangani_pada = mis_monitoring_alert.ditangani_pada
         """)
 
         # Close alerts whose underlying condition no longer exists.

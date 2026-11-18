@@ -1,8 +1,9 @@
 from service.transaksi import lihat_semua_transaksi, update_status_pesanan
 from cli.customer import tampilkan_invoice
+from service.employee import get_employee_for_user
 
 
-def menu_update_status():
+def menu_update_status(user):
 
         try:
             transaksi_id = int(
@@ -34,9 +35,11 @@ def menu_update_status():
 
         status_baru = status_map[pilihan]
 
+        employee = get_employee_for_user(user["id"])
         berhasil = update_status_pesanan(
             transaksi_id,
-            status_baru
+            status_baru,
+            employee["id"] if employee else None
         )
 
         if berhasil:
@@ -121,7 +124,7 @@ def menu_kasir(user):
 
         elif pilihan == "3":
 
-            menu_update_status()
+            menu_update_status(user)
 
         # -----------------------------------------
         # LOGOUT

@@ -365,9 +365,10 @@ def detect_duplicate_purchase(supplier_id, items):
             JOIN detail_pembelian dp ON dp.pembelian_id = pb.id
             JOIN produk p ON p.id = dp.produk_id
             WHERE pb.status IN ('dipesan', 'diproses')
+              AND pb.supplier_id = %s
               AND dp.produk_id IN ({placeholders})
             GROUP BY dp.produk_id, p.nama
-        """, tuple(product_ids))
+        """, (supplier_id, *product_ids))
         return cursor.fetchall()
     finally:
         _close(cursor, connection)

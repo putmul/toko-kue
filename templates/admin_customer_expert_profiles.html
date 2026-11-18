@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profil Rasa Kue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% from 'partials/icon.html' import icon %}
+<nav>
+    <h2>Profil Rasa Kue</h2>
+    <div><a href="{{ url_for('admin') }}">Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a></div>
+</nav>
+{% include 'partials/top_module_nav.html' %}
+{% include 'partials/workspace_start.html' %}
+<div class="container">
+    <h1>Knowledge Base Expert System Customer</h1>
+    <p>Isi intensitas rasa 0–100. Nilai ini menjadi fakta produk yang dibaca oleh rule engine.</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    {% if success %}<p class="success">{{ success }}</p>{% endif %}
+    {% for item in profiles %}<form id="profile-{{ item.produk_id }}" method="POST"></form>{% endfor %}
+    <div class="table-scroll">
+    <table>
+        <thead><tr><th>Produk</th><th>Harga</th><th>Coklat</th><th>Manis</th><th>Pahit</th><th>Tekstur</th><th>Kategori</th><th>Alergen</th><th>Aksi</th></tr></thead>
+        <tbody>
+        {% for item in profiles %}
+        <tr>
+            <td>{{ item.nama }}<input form="profile-{{ item.produk_id }}" type="hidden" name="produk_id" value="{{ item.produk_id }}"></td>
+            <td>Rp {{ "{:,.0f}".format(item.harga) }}</td>
+            <td><input form="profile-{{ item.produk_id }}" type="number" name="intensitas_coklat" min="0" max="100" value="{{ item.intensitas_coklat }}" required></td>
+            <td><input form="profile-{{ item.produk_id }}" type="number" name="tingkat_kemanisan" min="0" max="100" value="{{ item.tingkat_kemanisan }}" required></td>
+            <td><input form="profile-{{ item.produk_id }}" type="number" name="tingkat_kepahitan" min="0" max="100" value="{{ item.tingkat_kepahitan }}" required></td>
+            <td><select form="profile-{{ item.produk_id }}" name="tekstur"><option value="lembut" {% if item.tekstur == 'lembut' %}selected{% endif %}>Lembut</option><option value="renyah" {% if item.tekstur == 'renyah' %}selected{% endif %}>Renyah</option><option value="creamy" {% if item.tekstur == 'creamy' %}selected{% endif %}>Creamy</option></select></td>
+            <td><select form="profile-{{ item.produk_id }}" name="kategori">{% for value in ['cake','brownies','donat','cookies','pastry','lainnya'] %}<option value="{{ value }}" {% if item.kategori == value %}selected{% endif %}>{{ value|title }}</option>{% endfor %}</select></td>
+            <td>
+                <label><input form="profile-{{ item.produk_id }}" type="checkbox" name="mengandung_susu" value="1" {% if item.mengandung_susu %}checked{% endif %}> Susu</label>
+                <label><input form="profile-{{ item.produk_id }}" type="checkbox" name="mengandung_telur" value="1" {% if item.mengandung_telur %}checked{% endif %}> Telur</label>
+                <label><input form="profile-{{ item.produk_id }}" type="checkbox" name="mengandung_kacang" value="1" {% if item.mengandung_kacang %}checked{% endif %}> Kacang</label>
+                <label><input form="profile-{{ item.produk_id }}" type="checkbox" name="mengandung_gluten" value="1" {% if item.mengandung_gluten %}checked{% endif %}> Gluten</label>
+            </td>
+            <td><button form="profile-{{ item.produk_id }}" type="submit">Simpan</button></td>
+        </tr>
+        {% else %}<tr><td colspan="9">Belum ada produk.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% include 'partials/workspace_end.html' %}
+</body>
+</html>

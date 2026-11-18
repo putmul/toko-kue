@@ -53,7 +53,8 @@ def get_supplier_produk(supplier_id=None):
         connection.close()
 
 
-def buat_pembelian_supplier(supplier_id, employee_id, items, catatan=None):
+def buat_pembelian_supplier(supplier_id, employee_id, items, catatan=None,
+                            recommendation_id=None):
     """Create a supplier purchase destined for the central warehouse."""
     if not items:
         return None, "Minimal satu produk harus dipilih."
@@ -102,6 +103,28 @@ def buat_pembelian_supplier(supplier_id, employee_id, items, catatan=None):
             total += subtotal
             normalized.append((produk_id, jumlah, supplier_product["harga_beli"], subtotal))
 
+        if recommendation_id is not None:
+            cursor.execute("""
+                SELECT id, produk_id, supplier_terpilih_id, status,
+                       jumlah_pembelian
+                FROM dss_rekomendasi_pengadaan
+                WHERE id = %s
+                FOR UPDATE
+            """, (recommendation_id,))
+            recommendation = cursor.fetchone()
+            if not recommendation:
+                raise ValueError("Rekomendasi DSS tidak ditemukan.")
+            if recommendation["status"] != "draft":
+                raise ValueError("Rekomendasi DSS sudah digunakan.")
+            if recommendation["supplier_terpilih_id"] != supplier_id:
+                raise ValueError("Supplier tidak sesuai rekomendasi DSS.")
+            if not any(
+                product_id == recommendation["produk_id"]
+                and quantity == recommendation["jumlah_pembelian"]
+                for product_id, quantity, _, _ in normalized
+            ):
+                raise ValueError("Jumlah pembelian tidak sesuai rekomendasi DSS.")
+
         duplicates = detect_duplicate_purchase(supplier_id, normalized)
         if duplicates:
             duplicate = duplicates[0]
@@ -112,9 +135,10 @@ def buat_pembelian_supplier(supplier_id, employee_id, items, catatan=None):
 
         cursor.execute("""
             INSERT INTO pembelian
-                (supplier_id, employee_id, cabang_id, total_harga, status, catatan)
-            VALUES (%s, %s, NULL, %s, 'dipesan', %s)
-        """, (supplier_id, employee_id, total, catatan))
+                (supplier_id, employee_id, cabang_id, total_harga, status,
+                 catatan, dss_rekomendasi_id)
+            VALUES (%s, %s, NULL, %s, 'dipesan', %s, %s)
+        """, (supplier_id, employee_id, total, catatan, recommendation_id))
         pembelian_id = cursor.lastrowid
 
         for produk_id, jumlah, harga_beli, subtotal in normalized:
@@ -123,6 +147,13 @@ def buat_pembelian_supplier(supplier_id, employee_id, items, catatan=None):
                     (pembelian_id, produk_id, jumlah, harga_beli, subtotal)
                 VALUES (%s, %s, %s, %s, %s)
             """, (pembelian_id, produk_id, jumlah, harga_beli, subtotal))
+
+        if recommendation_id is not None:
+            cursor.execute("""
+                UPDATE dss_rekomendasi_pengadaan
+                SET status = 'digunakan'
+                WHERE id = %s AND status = 'draft'
+            """, (recommendation_id,))
 
         connection.commit()
         return pembelian_id, None

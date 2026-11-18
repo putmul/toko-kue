@@ -21,12 +21,17 @@ def get_transaksi_untuk_rekap(cabang_id, hanya_belum=False, hanya_sudah=False):
             LEFT JOIN rekap_transaksi r ON r.transaksi_id = t.id
             WHERE t.cabang_id = %s
             {filter_rekap}
+            {filter_final}
             ORDER BY t.tanggal DESC, t.id DESC
         """.format(
             filter_rekap=(
                 "AND r.id IS NULL" if hanya_belum
                 else "AND r.id IS NOT NULL" if hanya_sudah
                 else ""
+            ),
+            filter_final=(
+                "AND t.status IN ('selesai', 'dibatalkan')"
+                if hanya_belum else ""
             )
         )
         cursor.execute(query, (cabang_id,))
@@ -54,23 +59,28 @@ def simpan_rekap_transaksi(employee_id, cabang_id, entries):
                 return False, "Status rekap tidak valid."
 
             cursor.execute("""
-                SELECT id
-                FROM transaksi
-                WHERE id = %s AND cabang_id = %s
+                SELECT t.status, r.id AS rekap_id
+                FROM transaksi t
+                LEFT JOIN rekap_transaksi r ON r.transaksi_id = t.id
+                WHERE t.id = %s AND t.cabang_id = %s
                 FOR UPDATE
             """, (transaksi_id, cabang_id))
-            if not cursor.fetchone():
+            transaction = cursor.fetchone()
+            if not transaction:
                 return False, "Transaksi bukan milik cabang manager."
+            if transaction["rekap_id"] is not None:
+                return False, "Transaksi sudah direkap dan tidak dapat diubah."
+            if status_rekap == "berhasil" and transaction["status"] != "selesai":
+                return False, "Transaksi berhasil hanya boleh direkap setelah selesai."
+            if status_rekap == "dibatalkan" and transaction["status"] != "dibatalkan":
+                return False, "Transaksi dibatalkan harus berstatus dibatalkan."
 
             cursor.execute("""
                 INSERT INTO rekap_transaksi
                     (transaksi_id, employee_id, cabang_id, status_rekap, catatan)
                 VALUES (%s, %s, %s, %s, %s)
                 ON DUPLICATE KEY UPDATE
-                    employee_id = VALUES(employee_id),
-                    cabang_id = VALUES(cabang_id),
-                    status_rekap = VALUES(status_rekap),
-                    catatan = VALUES(catatan)
+                    employee_id = employee_id
             """, (
                 transaksi_id, employee_id, cabang_id, status_rekap, catatan
             ))

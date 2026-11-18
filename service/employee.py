@@ -1,4 +1,5 @@
 from model.database import get_connection
+from werkzeug.security import generate_password_hash
 
 def get_employee_for_user(user_id):
     connection = get_connection()
@@ -59,7 +60,7 @@ def tambah_employee(nama, username, password, jabatan, cabang_id,
         cursor.execute("""
             INSERT INTO users (nama, username, password, role)
             VALUES (%s, %s, %s, %s)
-        """, (nama, username, password, jabatan))
+        """, (nama, username, generate_password_hash(password), jabatan))
         user_id = cursor.lastrowid
 
         cursor.execute("""
@@ -122,7 +123,7 @@ def update_employee(employee_id, nama, username, password, jabatan,
                 UPDATE users
                 SET nama = %s, username = %s, password = %s, role = %s
                 WHERE id = %s
-            """, (nama, username, password, jabatan, user_id))
+            """, (nama, username, generate_password_hash(password), jabatan, user_id))
         else:
             cursor.execute("""
                 UPDATE users

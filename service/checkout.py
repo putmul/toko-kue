@@ -1,4 +1,5 @@
 from model.database import get_connection
+from service.inventory import record_mutation
 
 def buat_transaksi(user_id, items, cabang_id=None):
     connection = get_connection()
@@ -140,6 +141,10 @@ def buat_transaksi(user_id, items, cabang_id=None):
                 SET stok = stok - %s
                 WHERE cabang_id = %s AND produk_id = %s
             """, (jumlah, cabang_id, produk_id))
+            record_mutation(
+                cursor, produk_id, cabang_id, "penjualan", transaksi_id,
+                -jumlah, stok_cabang, stok_cabang - jumlah, user_id
+            )
 
         cursor.execute("""
             UPDATE transaksi
